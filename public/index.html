@@ -11,6 +11,9 @@
 @font-face{font-family:Andika;src:url(/fonts/andika/andika-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:Andika;src:url(/fonts/andika/andika-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
 @font-face{font-family:Fraunces;src:url(/fonts/fraunces/fraunces-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Andika;src:url(/fonts/noto-sans-hebrew/noto-sans-hebrew-hebrew-400-normal.woff2) format("woff2");font-weight:400;font-display:swap;unicode-range:U+0590-05FF}
+@font-face{font-family:Andika;src:url(/fonts/noto-sans-hebrew/noto-sans-hebrew-hebrew-700-normal.woff2) format("woff2");font-weight:700;font-display:swap;unicode-range:U+0590-05FF}
+@font-face{font-family:Fraunces;src:url(/fonts/noto-sans-hebrew/noto-sans-hebrew-hebrew-700-normal.woff2) format("woff2");font-weight:700;font-display:swap;unicode-range:U+0590-05FF}
 :root{--dusk:#171f3f;--dusk2:#2b3468;--mist:#c6d0ea;--ink:#1b2a41;--soft:#56627a;--paper:#fffbf1;--edge:#e7dcc3;--gold:#e8b23a;--jack:#2f8a57;--red:#d0303b;--story:var(--gold)}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -346,8 +349,15 @@ async function drawShelf() {
       const url = b.pages[0]?.url;
       const s = { key: b.story, title: b.title, cover: null };
       return `<div class="item"><a class="book3d tiny" href="#/book/${b.id}" aria-label="Open ${esc(b.title)}, starring ${esc(b.child.name)}"><span class="rear"></span><span class="spine" style="--bk:${COLORS[b.story]}"></span><span class="pages"></span><span class="front">${url ? `<img src="${url}?thumb=1" alt="">` : `<span class="painting">${b.status === "failed" ? "This one couldn't be made" : "Being painted"}</span>`}<span class="title">${esc(s.title)}</span></span></a>
-        <small>Starring ${esc(b.child.name)}<br>${when(b.createdAt)}${b.status === "done" ? `<br><a href="/api/books/${b.id}/pdf">Download PDF</a>` : ""}</small></div>`;
+        <small>Starring ${esc(b.child.name)}<br>${when(b.createdAt)}${b.status === "done" ? `<br><a href="/api/books/${b.id}/pdf">Download PDF</a>` : ""}${b.status !== "running" ? `<br><button class="linkish" data-del="${b.id}">Delete</button>` : ""}</small></div>`;
     }).join("") : `<p class="note">Your finished books live here, ready to read or download again. Pick a story above to make your first.</p>`;
+    // Two clicks: the first asks, the second deletes.
+    box.querySelectorAll("[data-del]").forEach((btn) => (btn.onclick = async () => {
+      if (!btn.dataset.sure) { btn.dataset.sure = "1"; btn.textContent = "Delete this book for good?"; return; }
+      btn.disabled = true;
+      try { await api(`/api/books/${btn.dataset.del}`, { method: "DELETE" }); drawShelf(); }
+      catch (e) { btn.textContent = e.message; }
+    }));
   } catch (e) { box.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
 }
 

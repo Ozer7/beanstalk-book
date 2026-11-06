@@ -31,8 +31,8 @@ app.use(httpLog);
 // ---------------------------------------------------------------------------
 app.get("/healthz", (_req, res) => res.send("ok"));
 const require = createRequire(import.meta.url);
-for (const pkg of ["andika", "fraunces"]) {
-  const dir = path.dirname(require.resolve(`@fontsource/${pkg}/files/${pkg}-latin-700-normal.woff2`));
+for (const [pkg, subset] of [["andika", "latin"], ["fraunces", "latin"], ["noto-sans-hebrew", "hebrew"]]) {
+  const dir = path.dirname(require.resolve(`@fontsource/${pkg}/files/${pkg}-${subset}-700-normal.woff2`));
   app.use(`/fonts/${pkg}`, express.static(dir, { maxAge: "30d", immutable: true }));
 }
 // Pages revalidate, so a deploy shows at once; an unchanged page still answers instantly.
@@ -138,7 +138,7 @@ function cleanChild(raw = {}, story) {
   }
   if (!child.name) throw httpError(400, "Type a name for the cover and the About Me page.");
   const bad = unsupportedChars(Object.values(child).join(""));
-  if (bad.length) throw httpError(400, `The book's font can't print ${bad.slice(0, 6).join(" ")} yet. Please use English letters.`);
+  if (bad.length) throw httpError(400, `The book's font can't print ${bad.slice(0, 6).join(" ")} yet. Please use English or Hebrew letters.`);
   child.pronoun = ["he", "she"].includes(raw.pronoun) ? raw.pronoun : story.defaultPronoun;
   return child;
 }
@@ -183,6 +183,19 @@ app.get("/api/books/:id", route(async (req) => {
   return { book: bookOut(b) };
 }));
 
+const pdfCache = new Map();
+
+// Deleting takes the book's photo and pictures with it. The ledger keeps its line.
+app.delete("/api/books/:id", route(async (req) => {
+  const b = await db.getBook(req.user.id, Number(req.params.id));
+  if (!b) throw httpError(404, "That book isn't yours or doesn't exist.");
+  if (b.status === "running") throw httpError(409, "This book is still being painted.");
+  await db.q(`DELETE FROM books WHERE id=$1 AND user_id=$2`, [b.id, req.user.id]);
+  pdfCache.delete(b.id);
+  log.info({ event: "book.delete", book: b.id, user: req.user.id }, "book deleted");
+  return { ok: true };
+}));
+
 // Live progress, as server-sent events.
 app.get("/api/books/:id/events", async (req, res) => {
   const b = await db.getBook(req.user.id, Number(req.params.id));
@@ -203,7 +216,6 @@ app.get("/api/books/:id/events", async (req, res) => {
 
 // The PDF, rebuilt on demand from the pictures in the database, so it's still
 // here tomorrow. The last few are kept in memory so a second click is instant.
-const pdfCache = new Map();
 app.get("/api/books/:id/pdf", async (req, res) => {
   try {
     const b = await db.getBook(req.user.id, Number(req.params.id));

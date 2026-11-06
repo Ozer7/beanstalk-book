@@ -12,11 +12,10 @@
 - [x] **Words never on a face.** The faces come from a painted mask, not a guess, and the words are placed to clear them. If nothing clears, the art is framed and the words go below it.
 
 ## Defects I know about
-- **Stand-in's hair.** The wider crop fixed it on most pages. Jack page 13 still shows a small tuft around a short-haired reader's head. A stand-in with short hair would end this, at the cost of repainting the art.
-- **The quality score misses some of that.** It gave pages with leftover hair scores of 90 or more, so a pass doesn't prove a page is clean. I check by reading the book.
-- **Body boxes from the vision model are unreliable.** One page had a person boxed far past her feet. Faces are exact; bodies aren't. A page that can't fit its words gets a second look.
+- **Stand-in's hair.** Every stand-in now has its hair cropped short in the stored art, so none can survive around a reader's shorter hair. The check also asks a direct yes-or-no about hair that isn't the reader's. Not yet confirmed on a full real book.
 - **Tested with one person's photo.** No child, long hair, dark skin, or head covering other than a kippah has been tried yet. That is the biggest open risk to likeness.
-- **Page 12 in Jack is the hardest page.** Jack's head is small in the pot, and it used all 3 tries in one run.
+- **Page 12 in Jack is the hardest page.** Jack's head is small in the pot, and it used all 3 tries in one run. The loop handles it, but it's the likeliest page to keep a so-so best-of-three.
+- **Body boxes from the vision model can be wrong.** Faces come from a painted mask and are exact; bodies don't. A page that can't fit its words gets up to two more looks, and the fallback layout can't put words on a face.
 
 ## Cost and limits
 - **Render Starter is needed ($7 a month).** On the free plan the book took 43 to 55 seconds and redos didn't fit.
@@ -25,7 +24,8 @@
 - **Books can't start for a short while after a deploy**, while the art loads into memory.
 
 ## Next
-- **About Me only prints English letters.** Hebrew needs its own font and right-to-left layout.
-- **Delete a book and delete an account** from the app.
+- **Delete an account** from the app. Deleting a book already works, from the shelf.
+- **Hebrew in the story text.** Names and About Me print in Hebrew now; the 20 pages of story are still English.
+- **`book.bluebid.online` is a forward.** It opens the site, but the address bar shows the onrender.com address, because Render's workspace plan allows 2 custom domains and the two earlier homeworks use them.
 - **Print quality.** 1024x1536 on a 6x9 in page is about 170 dpi: fine on screen, soft in print.
 - **Stripe webhooks**, if this moves off the class's shared account.

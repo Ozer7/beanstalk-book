@@ -80,11 +80,26 @@ for (const story of ["jack", "red"]) {
   console.log(story, "book ok in", Date.now() - t, "ms, pdf", buf.length, "bytes");
 }
 
+// Hebrew on the cover and the About Me page, and deleting a book
+{
+  const f = new FormData(); f.append("story", "red"); f.append("name", "אורי"); f.append("pronoun", "she"); f.append("likes", "לבנות apps"); f.append("photo", new Blob([photo], { type: "image/jpeg" }), "p.jpg");
+  const { body: { id } } = await J("/api/books", { method: "POST", body: f });
+  let b; for (let i = 0; i < 200; i++) { b = (await J(`/api/books/${id}`)).body.book; if (b.status !== "running") break; await new Promise((r) => setTimeout(r, 200)); }
+  assert.equal(b.status, "done", b.error);
+  const pdf = await call(`/api/books/${id}/pdf`); assert.equal(pdf.status, 200);
+  fs.writeFileSync("out/hebrew.pdf", Buffer.from(await pdf.arrayBuffer()));
+  const img = b.pages.find((p) => p.url.startsWith("/img/")).url;
+  assert.equal((await J(`/api/books/${id}`, { method: "DELETE" })).status, 200);
+  assert.equal((await call(`/api/books/${id}`)).status, 404);
+  assert.equal((await call(img)).status, 404, "its pictures go too");
+  console.log("hebrew and delete ok");
+}
+
 // second login: the books are still there
 cookie = cookie; 
 const w = (await J("/api/wallet")).body;
-assert.equal(w.balance, 500 - 2 * 99);
-assert.equal(w.ledger.filter((l) => l.kind === "book").length, 2);
+assert.equal(w.balance, 500 - 3 * 99);
+assert.equal(w.ledger.filter((l) => l.kind === "book").length, 3);
 assert.ok(w.ledger.every((l) => l.cause));
 
 // refund
@@ -92,7 +107,7 @@ assert.equal((await J("/api/refunds", { method: "POST", json: { paymentId: w.pay
 const r = await J("/api/refunds", { method: "POST", json: { paymentId: w.payments[0].id, cents: 100, reason: "test" } });
 assert.equal(r.status, 200); assert.equal(r.body.status, "processed");
 const w2 = (await J("/api/wallet")).body;
-assert.equal(w2.balance, 500 - 198 - 100);
+assert.equal(w2.balance, 500 - 297 - 100);
 console.log("refund ok");
 
 // someone else can't see the book or its picture
