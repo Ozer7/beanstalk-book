@@ -16,10 +16,9 @@
 html{-webkit-text-size-adjust:100%}
 body{margin:0;min-height:100vh;color:var(--paper);font:400 17px/1.55 Andika,system-ui,sans-serif;background:var(--dusk);overflow-x:hidden}
 #sky{position:fixed;inset:0;z-index:-2;overflow:hidden;background:linear-gradient(#141b38,var(--dusk2))}
-#sky img{position:absolute;inset:-5%;width:110%;height:110%;max-width:none;object-fit:cover;object-position:50% 8%;opacity:0;transition:opacity 1.1s ease,transform 9s ease-out;filter:blur(3px) saturate(1.12);transform:scale(1.06)}
+#sky img{position:absolute;inset:-5%;width:110%;height:110%;max-width:none;object-fit:cover;object-position:50% 8%;opacity:0;transition:opacity 1.1s ease,transform 9s ease-out;transform:scale(1.06)}
 #sky img.on{opacity:1;transform:scale(1)}
 #sky:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(14,19,52,.86),rgba(14,19,52,.32) 58%,rgba(14,19,52,.45)),linear-gradient(rgba(14,19,52,.35),rgba(14,19,52,.1) 40%,rgba(14,19,52,.86))}
-body.deep #sky img{filter:blur(16px) saturate(1.1)}
 body.deep #sky:after{background:rgba(14,19,52,.74)}
 #motes{position:fixed;inset:0;z-index:-1;pointer-events:none}
 h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:700;line-height:1.08;margin:0}
@@ -129,17 +128,17 @@ details{margin-top:16px}summary{cursor:pointer;font-weight:700}
 .bar{height:12px;border-radius:6px;background:rgba(255,255,255,.14);overflow:hidden;margin:12px 0 6px}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,#e4a92f,#ffe08a);box-shadow:0 0 14px #f2c75c;transition:width .5s ease-out}
 .easel{display:grid;grid-template-columns:minmax(150px,270px) minmax(0,1fr);gap:clamp(14px,3vw,30px);margin-top:18px;align-items:start;perspective:1200px}
-.fresh{aspect-ratio:2/3;background:var(--paper);border-radius:3px;box-shadow:0 16px 30px rgba(0,0,0,.45);position:relative;overflow:hidden;display:grid;place-items:center;color:var(--soft);text-align:center;padding:12px;transform-style:preserve-3d}
-.fresh img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:wet 1s ease-out both}
-@keyframes wet{from{opacity:0;filter:blur(9px) saturate(.2) brightness(1.3)}to{opacity:1;filter:none}}
+.fresh{aspect-ratio:2/3;background:var(--paper);border-radius:3px;box-shadow:0 16px 30px rgba(0,0,0,.45);position:relative;overflow:hidden;display:grid;place-items:center;color:var(--soft);text-align:center;padding:12px}
+.fresh img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:wet .55s ease-out both}
+@keyframes wet{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}
 .slots{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}
-.slot{aspect-ratio:2/3;border-radius:2px;background:rgba(255,255,255,.1);backdrop-filter:blur(6px);display:grid;place-items:center;color:var(--mist);font-size:13px;overflow:hidden;position:relative}
+.slot{aspect-ratio:2/3;border-radius:2px;background:rgba(255,255,255,.1);display:grid;place-items:center;color:var(--mist);font-size:13px;overflow:hidden;position:relative}
 .slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:land .45s cubic-bezier(.2,.8,.3,1.2) both}
 @keyframes land{from{transform:translateX(-46px) rotateY(50deg);opacity:0}to{transform:none;opacity:1}}
 
 /* Reading */
 .reader{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,4vw,44px);align-items:start;margin-top:14px}
-.stack{position:relative;aspect-ratio:2/3;width:100%;max-width:min(560px,calc((100vh - 120px)*2/3));margin:0 auto;perspective:1900px;touch-action:pan-y;cursor:grab;user-select:none}
+.stack{position:relative;aspect-ratio:2/3;width:100%;max-width:min(560px,calc((100vh - 200px)*2/3));margin:0 auto;perspective:1900px;touch-action:pan-y;cursor:grab;user-select:none}
 .leaf{position:absolute;inset:0;background:var(--paper);color:var(--ink);overflow:hidden;border-radius:2px 5px 5px 2px;box-shadow:0 18px 34px rgba(0,0,0,.5),inset 10px 0 14px -10px rgba(60,40,10,.5);transform-origin:left center;backface-visibility:hidden;container-type:inline-size}
 .leaf.top{z-index:2}
 .leaf.anim{transition:transform .62s cubic-bezier(.4,.05,.35,1)}
@@ -236,11 +235,13 @@ function swap(fn) { document.startViewTransition && !CALM ? document.startViewTr
 let skyOn = 0, skyId = null;
 function setSky(id, deep) {
   document.body.classList.toggle("deep", !!deep);
-  if (!id || id === skyId) return;
-  skyId = id;
-  const im = new Image(), src = `/art/${id}`;
+  // Behind a page, the small picture stretched large is already soft, and cheap to draw.
+  const key = `${id}:${!!deep}`;
+  if (!id || key === skyId) return;
+  skyId = key;
+  const im = new Image(), src = deep ? `/art/${id}?thumb=1` : `/art/${id}`;
   im.onload = () => {
-    if (skyId !== id) return;
+    if (skyId !== key) return;
     const next = $(skyOn ? "#sky1" : "#sky2"), last = $(skyOn ? "#sky2" : "#sky1");
     next.src = src; next.classList.add("on"); last.classList.remove("on"); skyOn = 1 - skyOn;
   };
@@ -263,7 +264,6 @@ const storyOf = (k) => catalog?.stories.find((s) => s.key === k);
       const a = 0.28 + 0.42 * Math.abs(Math.sin(t / 1400 + m.p));
       const x = (m.x + Math.sin(t / 3300 + m.p) * 0.012) * W, y = m.y * H;
       cx.fillStyle = `rgba(255,224,138,${a})`;
-      cx.shadowColor = "#f2c75c"; cx.shadowBlur = 7;
       cx.beginPath(); cx.arc(x, y, m.r, 0, 6.28); cx.fill();
     }
     requestAnimationFrame(draw);
@@ -457,8 +457,17 @@ function viewMaking(book) {
     climber.setAttribute("transform", `translate(${pt.x} ${pt.y})`);
   };
   climbTo(2);
-  const started = Date.now();
-  const tick = setInterval(() => { const el = $("#clock"); if (!el) return clearInterval(tick); const s = Math.round((Date.now() - started) / 1000); el.textContent = `${s} second${s === 1 ? "" : "s"}`; }, 500);
+  // Pages can land faster than the eye: show them one at a time, new over old.
+  const easel = [];
+  const show = setInterval(() => {
+    const box = $("#fresh"); if (!box) return clearInterval(show);
+    const t = easel.shift(); if (!t) return;
+    box.firstChild?.nodeType === 3 && (box.textContent = "");
+    const im = new Image(); im.src = t.url; im.alt = `Page ${t.n}, just painted`;
+    im.onload = () => { box.append(im); while (box.children.length > 2) box.firstChild.remove(); };
+  }, 650);
+  const started = new Date(book.createdAt).getTime();
+  const tick = setInterval(() => { const el = $("#clock"); if (!el) return clearInterval(tick); const s = Math.max(0, Math.round((Date.now() - started) / 1000)); el.textContent = `${s} second${s === 1 ? "" : "s"}`; }, 500);
   stream?.close();
   stream = new EventSource(`/api/books/${book.id}/events`);
   const seen = new Set();
@@ -471,7 +480,7 @@ function viewMaking(book) {
     for (const t of s.thumbs || []) {
       if (seen.has(t.n)) continue; seen.add(t.n);
       $(`#s${t.n}`).innerHTML = `<img src="${t.url}" alt="Page ${t.n}">`;
-      $("#fresh").innerHTML = `<img src="${t.url}" alt="Page ${t.n}, just painted">`;
+      easel.push(t);
     }
     if (s.stage === "done" || s.stage === "failed" || s.stage === "lost") { stream.close(); clearInterval(tick); setTimeout(() => viewBook(book.id), s.stage === "done" ? 900 : 0); }
   };
