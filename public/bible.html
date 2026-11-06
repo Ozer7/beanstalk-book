@@ -3,36 +3,63 @@
 <title>Character Bible</title>
 <style>
 @font-face{font-family:Andika;src:url(/fonts/andika/andika-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Andika;src:url(/fonts/andika/andika-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
 @font-face{font-family:Fraunces;src:url(/fonts/fraunces/fraunces-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
-:root{--sky:#dfeaf2;--ink:#1b2a41;--soft:#51607a;--paper:#fffdf6}
-body{margin:0;background:var(--sky);color:var(--ink);font:400 16px/1.5 Andika,system-ui,sans-serif}
-.w{max-width:1120px;margin:0 auto;padding:22px 20px 60px}
-h1,h2,h3{font-family:Fraunces,Georgia,serif;margin:0}h1{font-size:44px}h2{font-size:30px;margin-top:36px}h3{font-size:20px;margin-top:22px}
-.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:18px;margin-top:12px}
-.g.c{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
-img{display:block;width:100%}.pic{position:relative;aspect-ratio:2/3;background:#c7d7e3;container-type:inline-size;overflow:hidden}
-.pic img{position:absolute;inset:0;height:100%}
-.b{position:absolute;border:2px solid #e5ae32;display:none}.b.h{border-color:#b8272f}.t{position:absolute;background:rgba(255,251,241,.9);border-radius:2cqw;display:none;outline:2px solid #256b45}
+:root{--dusk:#171f3f;--dusk2:#2b3468;--mist:#c6d0ea;--ink:#1b2a41;--soft:#56627a;--paper:#fffbf1;--edge:#e7dcc3;--gold:#e8b23a}
+*{box-sizing:border-box}
+body{margin:0;color:var(--paper);font:400 17px/1.55 Andika,system-ui,sans-serif;background:linear-gradient(#141b38,var(--dusk) 40%,var(--dusk2)) fixed}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:700;line-height:1.08;margin:0}
+a{color:inherit}:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.w{max-width:1120px;margin:0 auto;padding:0 20px 20px}
+header{display:flex;align-items:center;gap:16px;padding:18px 0}
+.logo{display:inline-flex;align-items:center;gap:10px;font:700 25px Fraunces,Georgia,serif;text-decoration:none;margin-right:auto}
+.logo svg{width:26px;height:26px}
+.pill{display:inline-block;padding:10px 20px;border-radius:999px;background:rgba(13,18,50,.68);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);text-decoration:none;font-weight:700;font-size:15px;transition:background .15s,transform .15s;cursor:pointer}
+.pill:hover{background:rgba(43,52,104,.9);transform:translateY(-1px)}
+footer{padding:40px 0 30px;display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+
+.intro{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,4vw,50px);align-items:end;padding:26px 0 8px}
+h1{font-size:clamp(40px,5.6vw,70px);letter-spacing:-.015em;line-height:1.02}
+.intro p{margin:0;color:#e8ecf8}
+.tabs{display:flex;flex-wrap:wrap;gap:12px;margin:26px 0 0;align-items:center}
+.pill.on{background:linear-gradient(#f6cc63,#e4a92f);color:#241a02;box-shadow:none}
+.toggle input{position:absolute;opacity:0}
+.toggle:has(input:checked){background:linear-gradient(#f6cc63,#e4a92f);color:#241a02;box-shadow:none}
+.toggle:has(input:focus-visible){outline:3px solid var(--gold);outline-offset:2px}
+.status{color:var(--mist);font-size:15px;margin:14px 0 0}
+h2{font-size:clamp(25px,3.2vw,34px);margin:40px 0 16px}
+.g{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.card{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .36 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"),var(--paper);color:var(--ink);border-radius:8px;overflow:hidden;box-shadow:0 14px 26px rgba(3,6,24,.4);display:flex;flex-direction:column}
+.card img{display:block;width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.pic{position:relative;aspect-ratio:2/3;background:#e9dfc8;overflow:hidden}
+.body{padding:12px 14px 14px;flex:1;font-size:15px;line-height:1.42}
+.body b{font:700 18px/1.2 Fraunces,Georgia,serif;display:block;margin-bottom:4px}
+.body p{margin:0;color:var(--soft)}
+.body .num{display:inline-block;min-width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;background:var(--ink);color:var(--paper);font:700 13px Andika,sans-serif;margin-bottom:6px}
+.body small{display:block;margin-top:6px;color:var(--soft);font-size:13px}
+.bad{color:#8a2a22!important}
+.b{position:absolute;border:2px solid var(--gold);display:none}.b.h{border-color:#e0333e}
+.t{position:absolute;background:rgba(255,251,241,.82);border-radius:6px;outline:2px solid #2f8a57;display:none}
 body.show .b,body.show .t{display:block}
-small{color:var(--soft)}p{max-width:68ch}.bad{color:#7c1a21}
-label{cursor:pointer}
+@media (max-width:700px){.intro{grid-template-columns:minmax(0,1fr)}.g{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style></head><body><div class="w">
-<a href="/">Back to Storybook</a>
-<h1>The character bible</h1>
-<p>Every character and every page of both stories is painted once and stored in the database. When you make a book, you're edited into these pages. Both stories fill in the same 20-page template.</p>
-<p id="st"></p>
-<label><input type="checkbox" id="sw"> Show where the words go (green) and what they must not cover (gold, with the hero's head in red)</label>
+<header><a class="logo" href="/"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#e8b23a" d="M12 6C9.5 4.2 6 3.800 2.500 4.500v14c3.500-.7 7-.3 9.500 1.500 2.500-1.800 6-2.200 9.500-1.500v-14C18 3.800 14.500 4.200 12 6z"/><path stroke="#6b4e0d" stroke-width="1.3" d="M12 6v14"/></svg>Storybook</a><a class="pill" href="/">Back to the books</a></header>
+<div class="intro"><h1>The character bible</h1><p>Every character and every page of both stories is painted once and kept in the database. When you make a book, you're edited into these pages. Both stories fill in the same 20-page template.</p></div>
+<div class="tabs" id="tabs"></div>
+<p class="status" id="st"></p>
 <div id="o"></div>
+<footer><a class="pill" href="/">Make a book</a><a class="pill" href="/privacy">Privacy</a></footer>
 <script>
 const esc=(s)=>String(s??"").replace(/[&<>"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const sw=document.getElementById("sw");sw.onchange=()=>document.body.classList.toggle("show",sw.checked);
 const pct=(b)=>`left:${b.left*100}%;top:${b.top*100}%;width:${(b.right-b.left)*100}%;height:${(b.bottom-b.top)*100}%`;
 async function load(){
  const d=await (await fetch("/bible.json")).json();
  const s=d.status;
- document.getElementById("st").textContent=s.state==="ready"?"All art is ready.":s.state==="stopped"?`Painting stopped: ${s.error}`:s.state==="off"?"":`Painting: ${s.state}, ${s.done} of ${s.total} done.`;
- document.getElementById("o").innerHTML=d.stories.map((st)=>`<h2>${esc(st.title)}</h2><h3>The cast</h3><div class="g c">${st.cast.map((c)=>`<div><img src="/art/${c.image}?thumb=1" alt="${esc(c.name)}" loading="lazy"><b>${esc(c.name)}</b><br><small>${esc(c.description)}</small></div>`).join("")}</div>
- <h3>The pages</h3><div class="g">${st.pages.map((p)=>`<div><div class="pic">${p.image?`<img src="/art/${p.image}?thumb=1" alt="Page ${p.n}" loading="lazy">`:""}${(p.protected||[]).map((b)=>`<i class="b ${/hero head/.test(b.label)?"h":""}" title="${esc(b.label)}" style="${pct(b)}"></i>`).join("")}${p.place&&p.place.box?`<i class="t" style="${pct(p.place.box)}"></i>`:""}</div><b>${p.n}</b> <small>${esc(p.text)}</small>${p.score!=null?`<br><small>score ${p.score}, ${p.attempts.filter((a)=>!a.skipped).length} of 3 generations${p.place?.mode==="framed"?", framed":""}</small>`:""}${(p.problems||[]).length?`<br><small class="bad">${esc(p.problems.join("; "))}</small>`:""}</div>`).join("")}</div>`).join("");
+ document.getElementById("st").textContent=s.state==="ready"?"":s.state==="stopped"?`Painting stopped: ${s.error}`:s.state==="off"?"":`Painting: ${s.done} of ${s.total} done.`;
+ document.getElementById("tabs").innerHTML=d.stories.map((st)=>`<a class="pill" href="#${st.key}">${esc(st.title)}</a>`).join("")+`<label class="pill toggle"><input type="checkbox" id="sw" ${document.body.classList.contains("show")?"checked":""}>Show where the words go</label>`;
+ const sw=document.getElementById("sw");sw.onchange=()=>document.body.classList.toggle("show",sw.checked);
+ document.getElementById("o").innerHTML=d.stories.map((st)=>`<section id="${st.key}"><h2>${esc(st.title)}: the cast</h2><div class="g">${st.cast.map((c)=>`<article class="card"><div class="pic"><img src="/art/${c.image}?thumb=1" alt="${esc(c.name)}" loading="lazy"></div><div class="body"><b>${esc(c.name)}</b><p>${esc(c.description)}</p></div></article>`).join("")}</div>
+ <h2>${esc(st.title)}: the pages</h2><div class="g">${st.pages.map((p)=>`<article class="card"><div class="pic">${p.image?`<img src="/art/${p.image}?thumb=1" alt="Page ${p.n}" loading="lazy">`:""}${(p.protected||[]).map((b)=>`<i class="b ${/hero head/.test(b.label)?"h":""}" title="${esc(b.label)}" style="${pct(b)}"></i>`).join("")}${p.place&&p.place.box?`<i class="t" style="${pct(p.place.box)}"></i>`:""}</div><div class="body"><span class="num">${p.n}</span><p>${esc(p.text)}</p>${p.score!=null?`<small>Check score ${p.score}. ${p.attempts.filter((a)=>!a.skipped).length} of 3 tries used.</small>`:""}${(p.problems||[]).length?`<small class="bad">${esc(p.problems.join("; "))}</small>`:""}</div></article>`).join("")}</div></section>`).join("");
  if(!["ready","stopped","off"].includes(s.state)) setTimeout(load,20000);
 }
 load();

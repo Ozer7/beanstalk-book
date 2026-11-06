@@ -139,7 +139,7 @@ function cleanChild(raw = {}, story) {
   if (!child.name) throw httpError(400, "Type a name for the cover and the About Me page.");
   const bad = unsupportedChars(Object.values(child).join(""));
   if (bad.length) throw httpError(400, `The book's font can't print ${bad.slice(0, 6).join(" ")} yet. Please use English letters.`);
-  child.pronoun = ["he", "she", "they"].includes(raw.pronoun) ? raw.pronoun : story.defaultPronoun;
+  child.pronoun = ["he", "she"].includes(raw.pronoun) ? raw.pronoun : story.defaultPronoun;
   return child;
 }
 
