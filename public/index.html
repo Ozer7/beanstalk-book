@@ -205,6 +205,7 @@ function viewNew(key) {
         </label>
         <label for="name">Their name <small>on the cover and the About Me page</small></label>
         <input id="name" name="name" type="text" maxlength="40" required autocomplete="off">
+        <input type="hidden" id="same" name="samePhoto" value="">
         <label>The story calls them</label>
         <div class="seg" role="radiogroup">
           ${["he", "she", "they"].map((p) => `<label><input type="radio" name="pronoun" value="${p}" ${p === s.pronoun ? "checked" : ""}>${p}</label>`).join("")}
@@ -226,8 +227,14 @@ function viewNew(key) {
     </form>`;
   $("#photo").addEventListener("change", (e) => {
     const f = e.target.files[0];
-    if (f) { $("#ph").src = URL.createObjectURL(f); $("#drop").classList.add("has"); }
+    if (f) { $("#ph").src = URL.createObjectURL(f); $("#drop").classList.add("has"); $("#same").value = ""; $("#lastrow")?.remove(); }
   });
+  api("/api/books").then(({ books }) => {
+    const last = books.find((b) => b.photo);
+    if (!last || !$("#f") || $("#photo").files[0]) return;
+    $("#drop").insertAdjacentHTML("afterend", `<p id="lastrow" style="margin-top:8px"><button type="button" class="linkish" id="uselast">Use my last photo</button></p>`);
+    $("#uselast").onclick = () => { $("#ph").src = `/img/${last.photo}?thumb=1`; $("#drop").classList.add("has"); $("#same").value = "1"; $("#photo").required = false; $("#lastrow").textContent = "Using your last photo."; };
+  }).catch(() => {});
   $("#f").addEventListener("submit", async (e) => {
     e.preventDefault();
     const go = $("#go"); if (!go) return;

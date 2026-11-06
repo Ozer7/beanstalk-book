@@ -144,7 +144,7 @@ function cleanChild(raw = {}, story) {
 
 const bookOut = (b) => ({
   id: b.id, story: b.story, title: STORIES[b.story]?.title, status: b.status, child: b.child, error: b.error, timing: b.timing,
-  createdAt: b.created_at, finishedAt: b.finished_at, portrait: b.portrait_id ? Number(b.portrait_id) : null,
+  createdAt: b.created_at, finishedAt: b.finished_at, portrait: b.portrait_id ? Number(b.portrait_id) : null, photo: b.photo_id ? Number(b.photo_id) : null,
   pages: (b.pages || []).map((p) => ({ n: p.n, url: `${p.shared ? "/art" : "/img"}/${p.image}`, text: p.text, place: p.place, score: p.score, attempts: p.attempts, standIn: p.standIn })),
 });
 
@@ -154,14 +154,20 @@ app.post("/api/books", upload.single("photo"), route(async (req) => {
   const story = STORIES[req.body.story];
   if (!story) throw httpError(400, "Pick a story.");
   if (!storyReady(story.key)) throw httpError(503, "This story's pictures are still being painted. Try again in a few minutes.");
-  if (!req.file) throw httpError(400, "Add a photo first.");
+  // "Use my last photo" reuses the stored picture, so nothing has to be uploaded again.
+  let lastPhoto = null;
+  if (!req.file && req.body.samePhoto) {
+    const { rows } = await db.q(`SELECT photo_id FROM books WHERE user_id=$1 AND photo_id IS NOT NULL ORDER BY id DESC LIMIT 1`, [req.user.id]);
+    if (rows[0]) lastPhoto = await db.imageData(rows[0].photo_id);
+  }
+  if (!req.file && !lastPhoto) throw httpError(400, "Add a photo first.");
   const child = cleanChild(req.body, story);
 
   const counts = (await db.q(`SELECT count(*) FILTER (WHERE user_id=$1)::int AS mine, count(*)::int AS everyone FROM books WHERE created_at > now() - interval '24 hours'`, [req.user.id])).rows[0];
   if (counts.mine >= BOOKS_PER_USER_PER_DAY) throw httpError(429, `That's ${BOOKS_PER_USER_PER_DAY} books today, the limit for one account. Try again tomorrow.`);
   if (counts.everyone >= BOOKS_PER_DAY) throw httpError(429, "The site has made all its books for today. Try again tomorrow.");
 
-  const photo = await normalizePhoto(req.file.buffer);
+  const photo = lastPhoto || (await normalizePhoto(req.file.buffer));
   const book = await wallet.chargeForBook({ userId: req.user.id, story: story.key, storyTitle: story.title, child });
   const photoId = await db.saveImage({ userId: req.user.id, bookId: book.id, kind: "photo", buf: photo, thumb: await makeThumb(photo) });
   await db.q(`UPDATE books SET photo_id=$2 WHERE id=$1`, [book.id, photoId]);
