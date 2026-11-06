@@ -35,7 +35,8 @@ for (const pkg of ["andika", "fraunces"]) {
   const dir = path.dirname(require.resolve(`@fontsource/${pkg}/files/${pkg}-latin-700-normal.woff2`));
   app.use(`/fonts/${pkg}`, express.static(dir, { maxAge: "30d", immutable: true }));
 }
-app.use(express.static("public", { index: "index.html", maxAge: "5m" }));
+// Pages revalidate, so a deploy shows at once; an unchanged page still answers instantly.
+app.use(express.static("public", { index: "index.html", maxAge: 0, setHeaders: (res) => res.setHeader("Cache-Control", "no-cache") }));
 app.get("/bible", (_req, res) => res.sendFile(path.resolve("public/bible.html")));
 app.get("/privacy", (_req, res) => res.sendFile(path.resolve("public/privacy.html")));
 
@@ -47,8 +48,8 @@ app.get("/catalog.json", (_req, res) => {
     devLogin: DEV_LOGIN,
     art: { state: artStatus.state, done: artStatus.done, total: artStatus.total },
     stories: Object.values(STORIES).map((s) => {
-      const cover = sceneFor(s.key, 1), inside = sceneFor(s.key, 6);
-      return { key: s.key, title: s.title, role: s.role, pronoun: s.defaultPronoun, ready: storyReady(s.key), cover: cover ? Number(cover.image_id) : null, inside: inside ? Number(inside.image_id) : null };
+      const cover = sceneFor(s.key, 1), world = sceneFor(s.key, s.key === "jack" ? 10 : 8);
+      return { key: s.key, title: s.title, role: s.role, pronoun: s.defaultPronoun, ready: storyReady(s.key), cover: cover ? Number(cover.image_id) : null, world: world ? Number(world.image_id) : null };
     }),
   });
 });

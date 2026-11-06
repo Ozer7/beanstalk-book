@@ -14,7 +14,14 @@
 :root{--dusk:#171f3f;--dusk2:#2b3468;--mist:#c6d0ea;--ink:#1b2a41;--soft:#56627a;--paper:#fffbf1;--edge:#e7dcc3;--gold:#e8b23a;--jack:#2f8a57;--red:#d0303b;--story:var(--gold)}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;min-height:100vh;color:var(--paper);font:400 17px/1.55 Andika,system-ui,sans-serif;background:radial-gradient(90vw 70vh at 50% 108%,#59507f 0,transparent 70%),linear-gradient(#141b38,var(--dusk) 45%,var(--dusk2));background-attachment:fixed;overflow-x:hidden}
+body{margin:0;min-height:100vh;color:var(--paper);font:400 17px/1.55 Andika,system-ui,sans-serif;background:var(--dusk);overflow-x:hidden}
+#sky{position:fixed;inset:0;z-index:-2;overflow:hidden;background:linear-gradient(#141b38,var(--dusk2))}
+#sky img{position:absolute;inset:-5%;width:110%;height:110%;max-width:none;object-fit:cover;opacity:0;transition:opacity 1.1s ease,transform 9s ease-out;filter:blur(3px) saturate(1.12);transform:scale(1.06)}
+#sky img.on{opacity:1;transform:scale(1)}
+#sky:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(14,19,52,.86),rgba(14,19,52,.32) 58%,rgba(14,19,52,.45)),linear-gradient(rgba(14,19,52,.35),rgba(14,19,52,.1) 40%,rgba(14,19,52,.86))}
+body.deep #sky img{filter:blur(16px) saturate(1.1)}
+body.deep #sky:after{background:rgba(14,19,52,.74)}
+#motes{position:fixed;inset:0;z-index:-1;pointer-events:none}
 h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:700;line-height:1.08;margin:0}
 h1{font-size:clamp(38px,6.2vw,70px);letter-spacing:-.015em;max-width:14ch}
 h2{font-size:clamp(25px,3.2vw,34px)}
@@ -24,18 +31,19 @@ button,input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
 header{display:flex;align-items:center;gap:16px;padding:18px 0}
-.logo{font:700 24px Fraunces,Georgia,serif;text-decoration:none;margin-right:auto}
+.logo{display:inline-flex;align-items:center;gap:10px;font:700 25px Fraunces,Georgia,serif;text-decoration:none;margin-right:auto;text-shadow:0 1px 10px rgba(5,8,28,.7)}
+.logo svg{width:26px;height:26px}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .linkish{background:none;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.purse{display:inline-flex;align-items:center;gap:8px;font-weight:700;text-decoration:none;background:rgba(255,255,255,.1);border-radius:999px;padding:4px 14px 4px 8px;white-space:nowrap;position:relative}
+.purse{display:inline-flex;align-items:center;gap:8px;font-weight:700;text-decoration:none;background:rgba(13,18,50,.6);backdrop-filter:blur(8px);border-radius:999px;padding:4px 14px 4px 8px;white-space:nowrap;position:relative}
 .purse svg{width:24px;height:24px}
 .coin{position:absolute;left:14px;top:-70px;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:inset -2px -2px 0 #b98718;animation:coin .75s cubic-bezier(.5,0,.9,.6) both}
 @keyframes coin{to{transform:translateY(74px)}}
-.btn{display:inline-block;background:var(--gold);color:#241a02;border:0;border-radius:10px;padding:13px 24px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center}
-.btn:hover{background:#f3c452}
+.btn{display:inline-block;background:linear-gradient(#f6cc63,#e4a92f);color:#241a02;border:0;border-radius:999px;padding:13px 26px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center;box-shadow:0 6px 18px rgba(232,178,58,.35),inset 0 1px 0 rgba(255,255,255,.55);transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(232,178,58,.5),inset 0 1px 0 rgba(255,255,255,.55)}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
 .btn.ghost{background:transparent;color:inherit;box-shadow:inset 0 0 0 1.5px currentColor}
-.btn.ghost:hover{background:rgba(127,127,127,.15)}
+.btn.ghost:hover{background:rgba(127,127,127,.15);box-shadow:inset 0 0 0 1.5px currentColor}
 .btn.small{padding:7px 14px;font-size:15px}
 .btn.big{font-size:19px;padding:15px 30px}
 .note{color:var(--mist);font-size:15px}
@@ -46,39 +54,56 @@ footer{padding:40px 0 44px;color:var(--mist);font-size:15px}
 .hero{padding:16px 0 4px;display:grid;gap:14px}
 .hero p{max-width:48ch;font-size:19px;color:var(--mist)}
 
-/* The books on the shelf */
-.shelf-row{display:flex;justify-content:center;gap:clamp(22px,7vw,90px);margin:34px 0 0;perspective:1500px;padding:0 6px 26px;border-bottom:10px solid #4a342b}
-.book3d{--w:clamp(138px,27vw,290px);width:var(--w);aspect-ratio:2/3;position:relative;transform-style:preserve-3d;transform:rotateY(-24deg);transition:transform .45s cubic-bezier(.2,.8,.2,1);display:block;text-decoration:none;background:none;border:0;padding:0;cursor:pointer;color:var(--paper)}
-.book3d:hover,.book3d:focus-visible{transform:rotateY(-6deg) translateY(-12px) scale(1.04)}
-.book3d .front{position:absolute;inset:0;border-radius:3px 8px 8px 3px;overflow:hidden;background:var(--dusk2);box-shadow:inset 8px 0 9px -5px rgba(0,0,0,.55),10px 14px 26px rgba(0,0,0,.45);transform:translateZ(14px)}
+/* The stories, in their world */
+.stage{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(20px,4vw,60px);align-items:center;min-height:min(74vh,700px)}
+.pitch{display:grid;gap:18px;justify-items:start}
+.pitch h1,.pitch h2{font-size:clamp(40px,5.6vw,74px);line-height:1.02;letter-spacing:-.018em;text-shadow:0 2px 26px rgba(10,14,40,.65);max-width:11ch}
+.pitch p{max-width:36ch;font-size:clamp(17px,1.6vw,20px);color:#e8ecf8;text-shadow:0 1px 12px rgba(10,14,40,.8)}
+.duo{display:flex;justify-content:center;gap:clamp(22px,5vw,64px);perspective:1500px}
+.bookwrap{position:relative;animation:rise .9s cubic-bezier(.2,.8,.2,1) both}
+.bookwrap:nth-child(2){animation-delay:.14s}
+.bookwrap:after{content:"";position:absolute;left:4%;right:4%;bottom:-26px;height:34px;background:radial-gradient(closest-side,rgba(5,8,28,.75),transparent);z-index:-1}
+@keyframes rise{from{transform:translateY(46px);opacity:0}to{transform:none;opacity:1}}
+.book3d{--w:clamp(132px,21vw,282px);--d:15px;--rx:3deg;--ry:21deg;width:var(--w);aspect-ratio:2/3;position:relative;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .5s cubic-bezier(.2,.8,.2,1);display:block;text-decoration:none;background:none;border:0;padding:0;cursor:pointer;color:#fff}
+.book3d.live{transition:transform .08s linear}
+.book3d .front,.book3d .rear{position:absolute;inset:0;border-radius:2px 7px 7px 2px;overflow:hidden;background:var(--dusk2)}
+.book3d .front{transform:translateZ(var(--d));box-shadow:0 0 0 1px rgba(255,255,255,.08),inset 9px 0 8px -5px rgba(0,0,0,.5),inset 11px 0 1px -9px rgba(255,255,255,.25)}
+.book3d .rear{transform:translateZ(calc(var(--d) * -1)) rotateY(180deg);box-shadow:-34px 38px 50px rgba(3,6,24,.6)}
 .book3d .front img{width:100%;height:100%;object-fit:cover}
-.book3d .pages{position:absolute;top:1.5%;bottom:1.5%;right:0;width:28px;background:repeating-linear-gradient(90deg,#fff8e6 0 2px,#d9cdb2 2px 3px);transform:rotateY(90deg) translateZ(-14px);transform-origin:right}
-.book3d .spine{position:absolute;top:0;bottom:0;left:0;width:28px;background:var(--bk,#333);transform:rotateY(-90deg);transform-origin:left;border-radius:3px 0 0 3px}
-.book3d .title{position:absolute;left:7%;right:7%;top:5%;font:700 clamp(17px,3.1vw,31px)/1.06 Fraunces,Georgia,serif;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7),0 0 18px rgba(0,0,0,.45)}
+.book3d .front:before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(rgba(8,12,38,.62),transparent 34%)}
+.book3d .front:after{content:"";position:absolute;inset:0;z-index:3;mix-blend-mode:soft-light;background:radial-gradient(70% 55% at var(--gx,30%) var(--gy,15%),rgba(255,255,255,.75),transparent 70%)}
+.book3d .spine{position:absolute;top:0;bottom:0;left:calc(var(--d) * -1);width:calc(var(--d) * 2);background:linear-gradient(90deg,rgba(0,0,0,.4),transparent 45%,rgba(0,0,0,.35)),linear-gradient(var(--gold),var(--gold)) 0 9% / 100% 3px no-repeat,linear-gradient(var(--gold),var(--gold)) 0 91% / 100% 3px no-repeat,var(--bk,#333);transform:rotateY(-90deg);border-radius:2px}
+.book3d .pages{position:absolute;top:1%;bottom:1%;left:calc(100% - var(--d));width:calc(var(--d) * 2 - 2px);background:repeating-linear-gradient(90deg,#fff8e6 0 1px,#d6c9ab 1px 2px);transform:rotateY(90deg)}
+.book3d .title{position:absolute;z-index:2;left:8%;right:8%;top:6%;font:700 clamp(17px,2.55vw,33px)/1.04 Fraunces,Georgia,serif;background:linear-gradient(170deg,#fff6d4,#f2c75c 55%,#fff0bb);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 3px rgba(5,8,28,.8))}
 .book3d .painting{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:14px;color:var(--mist);font-size:15px}
-.tiny{--w:clamp(104px,20vw,150px)}
-.tiny .title{font-size:clamp(12px,1.5vw,15px)}
-.shelf{display:flex;flex-wrap:wrap;gap:26px 22px;margin-top:20px;perspective:1100px}
-.shelf .item{width:clamp(104px,20vw,150px)}
-.shelf small{display:block;margin-top:10px;color:var(--mist);font-size:14px;line-height:1.3}
+.storyname{display:block;text-align:center;margin-top:30px;font-weight:700;text-shadow:0 1px 10px rgba(5,8,28,.9)}
+.tiny{--w:clamp(104px,16vw,146px);--d:7px;--ry:14deg;--rx:0deg}
+.tiny .title{font-size:clamp(12px,1.35vw,15px)}
+.tiny:hover{--ry:0deg;transform:rotateX(0) rotateY(0) translateY(-6px)}
+.shelf{display:flex;flex-wrap:wrap;gap:26px 26px;margin-top:20px;perspective:1100px}
+.shelf .item{width:clamp(104px,16vw,146px)}
+.shelf small{display:block;margin-top:12px;color:#e0e5f4;font-size:14px;line-height:1.35}
+.band{margin-top:20px;padding:26px clamp(16px,3vw,30px) 30px;background:rgba(13,18,50,.62);backdrop-filter:blur(10px);border-radius:14px}
 section{padding:30px 0}
 
 /* An open book */
-.open{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);background:var(--paper);color:var(--ink);border-radius:6px;box-shadow:0 24px 50px rgba(0,0,0,.5);position:relative;perspective:1600px;margin-top:6px}
+.open{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .36 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"),var(--paper);color:var(--ink);border-radius:6px;box-shadow:0 34px 70px rgba(3,6,24,.65);position:relative;perspective:1600px;margin-top:6px}
 .open:after{content:"";position:absolute;top:0;bottom:0;left:calc(5/11*100%);width:44px;margin-left:-22px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(60,40,10,.2) 49%,rgba(60,40,10,.26) 50%,transparent)}
 .leftp{padding:clamp(20px,4vw,44px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
 .rightp{padding:clamp(20px,4vw,44px)}
 .titleline{font:700 clamp(25px,3.5vw,38px)/1.1 Fraunces,Georgia,serif}
 .titleline em{font-style:normal;color:var(--story)}
-.oval{width:clamp(150px,20vw,220px);aspect-ratio:4/5;border-radius:50%;display:grid;place-items:center;text-align:center;cursor:pointer;background:#f3ebd8;box-shadow:0 0 0 6px var(--paper),0 0 0 8px var(--story),0 0 0 14px var(--paper),0 0 0 15px var(--edge);overflow:hidden;position:relative;margin:14px;padding:18px;font-weight:700;font-family:Fraunces,Georgia,serif;font-size:20px;line-height:1.15;transition:transform .15s}
+.oval{width:clamp(150px,20vw,220px);aspect-ratio:4/5;border-radius:50%;display:grid;place-items:center;text-align:center;cursor:pointer;background:#f3ebd8;box-shadow:0 0 0 5px var(--paper),0 0 0 8px var(--gold),0 0 0 13px var(--paper),0 0 0 14px #c8a968,0 14px 26px 12px rgba(90,60,10,.18);overflow:hidden;position:relative;margin:14px;padding:18px;font-weight:700;font-family:Fraunces,Georgia,serif;font-size:20px;line-height:1.15;transition:transform .15s}
 .oval:hover,.oval.over{transform:scale(1.03)}
 .oval img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .oval input{position:absolute;opacity:0;width:1px;height:1px}
 .oval:has(input:focus-visible){outline:3px solid var(--ink);outline-offset:18px}
 label{display:block;font-weight:700;margin:16px 0 5px}
 label small{font-weight:400;color:var(--soft)}
-input[type=text],input[type=number],textarea{width:100%;padding:11px 13px;border:1.5px solid var(--edge);border-radius:8px;background:#fff;color:var(--ink)}
-input:focus,textarea:focus{border-color:var(--ink);outline:0}
+input[type=text],input[type=number],textarea{width:100%;padding:9px 2px;border:0;border-bottom:2px solid #d8caa9;border-radius:0;background:transparent;color:var(--ink)}
+#name{font:700 24px Fraunces,Georgia,serif}
+.paper input[type=number],.paper input[type=text]{background:rgba(255,255,255,.5);padding:9px 10px;border-radius:6px 6px 0 0}
+input:focus,textarea:focus{border-color:var(--story);outline:0}
 textarea{min-height:70px;resize:vertical}
 .seg{display:inline-flex;border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
 .seg label{margin:0;font-weight:400;padding:6px 16px;cursor:pointer}
@@ -95,15 +120,15 @@ details{margin-top:16px}summary{cursor:pointer;font-weight:700}
 /* Being painted */
 .making{display:grid;grid-template-columns:clamp(70px,10vw,120px) minmax(0,1fr);gap:clamp(14px,3vw,34px);align-items:stretch;margin-top:6px}
 .vine{width:100%;height:100%;min-height:380px;overflow:visible}
-.status h2{min-height:2.2em}
+.status h2{min-height:2.2em;font-size:clamp(28px,3.6vw,44px);text-shadow:0 2px 18px rgba(5,8,28,.7)}
 .bar{height:12px;border-radius:6px;background:rgba(255,255,255,.14);overflow:hidden;margin:12px 0 6px}
-.bar i{display:block;height:100%;background:var(--gold);transition:width .5s ease-out}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#e4a92f,#ffe08a);box-shadow:0 0 14px #f2c75c;transition:width .5s ease-out}
 .easel{display:grid;grid-template-columns:minmax(150px,270px) minmax(0,1fr);gap:clamp(14px,3vw,30px);margin-top:18px;align-items:start;perspective:1200px}
 .fresh{aspect-ratio:2/3;background:var(--paper);border-radius:3px;box-shadow:0 16px 30px rgba(0,0,0,.45);position:relative;overflow:hidden;display:grid;place-items:center;color:var(--soft);text-align:center;padding:12px;transform-style:preserve-3d}
 .fresh img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:wet 1s ease-out both}
 @keyframes wet{from{opacity:0;filter:blur(9px) saturate(.2) brightness(1.3)}to{opacity:1;filter:none}}
 .slots{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}
-.slot{aspect-ratio:2/3;border-radius:2px;background:rgba(255,255,255,.1);display:grid;place-items:center;color:var(--mist);font-size:13px;overflow:hidden;position:relative}
+.slot{aspect-ratio:2/3;border-radius:2px;background:rgba(255,255,255,.1);backdrop-filter:blur(6px);display:grid;place-items:center;color:var(--mist);font-size:13px;overflow:hidden;position:relative}
 .slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:land .45s cubic-bezier(.2,.8,.3,1.2) both}
 @keyframes land{from{transform:translateX(-46px) rotateY(50deg);opacity:0}to{transform:none;opacity:1}}
 
@@ -134,7 +159,7 @@ details{margin-top:16px}summary{cursor:pointer;font-weight:700}
 /* Money */
 .bignum{font:700 clamp(46px,8vw,76px)/1 Fraunces,Georgia,serif}
 .money{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:clamp(20px,4vw,40px);align-items:start;margin-top:14px}
-.paper{background:var(--paper);color:var(--ink);border-radius:6px;padding:clamp(18px,3vw,28px);box-shadow:0 16px 30px rgba(0,0,0,.35)}
+.paper{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .36 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"),var(--paper);color:var(--ink);border-radius:6px;padding:clamp(18px,3vw,28px);box-shadow:0 16px 30px rgba(0,0,0,.35)}
 .table{width:100%;border-collapse:collapse;font-size:16px;margin-top:10px}
 .table th{text-align:left;font-weight:700;padding:6px 10px 6px 0;border-bottom:1.5px solid var(--ink)}
 .table td{padding:9px 10px 9px 0;border-bottom:1px solid var(--edge);vertical-align:top}
@@ -143,6 +168,7 @@ details{margin-top:16px}summary{cursor:pointer;font-weight:700}
 .refund{display:grid;gap:8px;margin-top:8px;padding:10px;background:#fff;border-radius:8px}
 .refund[hidden]{display:none}
 @media (max-width:760px){
+ .stage{grid-template-columns:minmax(0,1fr);min-height:0;gap:26px}
  .open{grid-template-columns:minmax(0,1fr)}
  .open:after,.swing{display:none}
  .leftp{padding-bottom:0}
@@ -154,12 +180,13 @@ details{margin-top:16px}summary{cursor:pointer;font-weight:700}
  .vine{min-height:300px}
  .table{font-size:15px}
 }
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.swing{display:none}.coin{display:none}.book3d{transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.swing{display:none}.coin{display:none}.book3d{transform:none}.bookwrap{animation:none}}
 </style>
 </head>
 <body>
+<div id="sky" aria-hidden="true"><img id="sky1" alt=""><img id="sky2" alt=""></div><canvas id="motes" aria-hidden="true"></canvas>
 <div class="wrap">
-  <header id="top"><a class="logo" href="#/">Storybook</a><span id="who"></span></header>
+  <header id="top"><a class="logo" href="#/"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#e8b23a" d="M12 6C9.5 4.2 6 3.8 2.5 4.5v14c3.500-.700 7-.300 9.500 1.500 2.500-1.800 6-2.200 9.500-1.500v-14C18 3.800 14.500 4.200 12 6z"/><path stroke="#6b4e0d" stroke-width="1.300" d="M12 6v14"/></svg>Storybook</a><span id="who"></span></header>
   <main id="app"></main>
   <footer><a href="/bible">Meet the characters and see every painted page</a> &nbsp; <a href="/privacy">Privacy</a></footer>
 </div>
@@ -200,23 +227,88 @@ function dropCoins() {
 // Morph between views where the browser can.
 function swap(fn) { document.startViewTransition && !CALM ? document.startViewTransition(fn) : fn(); }
 
+// The world behind everything: the painted story, fading from one to the other.
+let skyOn = 0, skyId = null;
+function setSky(id, deep) {
+  document.body.classList.toggle("deep", !!deep);
+  if (!id || id === skyId) return;
+  skyId = id;
+  const im = new Image(), src = `/art/${id}`;
+  im.onload = () => {
+    if (skyId !== id) return;
+    const next = $(skyOn ? "#sky1" : "#sky2"), last = $(skyOn ? "#sky2" : "#sky1");
+    next.src = src; next.classList.add("on"); last.classList.remove("on"); skyOn = 1 - skyOn;
+  };
+  im.src = src;
+}
+const storyOf = (k) => catalog?.stories.find((s) => s.key === k);
+
+// Golden dust drifting up through the page. Light, and off for reduced motion.
+(function motes() {
+  if (CALM) return;
+  const cv = $("#motes"), cx = cv.getContext("2d");
+  let W, H, list;
+  const size = () => { W = cv.width = innerWidth; H = cv.height = innerHeight; };
+  size(); addEventListener("resize", size);
+  list = Array.from({ length: Math.min(46, Math.round(innerWidth / 26)) }, () => ({ x: Math.random(), y: Math.random(), r: 0.7 + Math.random() * 1.9, v: 0.00016 + Math.random() * 0.0004, p: Math.random() * 6.28 }));
+  const draw = (t) => {
+    cx.clearRect(0, 0, W, H);
+    for (const m of list) {
+      m.y -= m.v; if (m.y < -0.03) { m.y = 1.03; m.x = Math.random(); }
+      const a = 0.28 + 0.42 * Math.abs(Math.sin(t / 1400 + m.p));
+      const x = (m.x + Math.sin(t / 3300 + m.p) * 0.012) * W, y = m.y * H;
+      cx.fillStyle = `rgba(255,224,138,${a})`;
+      cx.shadowColor = "#f2c75c"; cx.shadowBlur = 7;
+      cx.beginPath(); cx.arc(x, y, m.r, 0, 6.28); cx.fill();
+    }
+    requestAnimationFrame(draw);
+  };
+  requestAnimationFrame(draw);
+})();
+
+// A book leans toward the pointer, and the light slides across its cover.
+function tiltBooks() {
+  if (CALM || matchMedia("(hover: none)").matches) return;
+  app.querySelectorAll(".duo .book3d").forEach((b) => {
+    b.addEventListener("pointermove", (e) => {
+      const r = b.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      b.classList.add("live");
+      b.style.setProperty("--ry", `${(x - 0.5) * 22}deg`);
+      b.style.setProperty("--rx", `${(0.5 - y) * 14}deg`);
+      b.style.setProperty("--gx", `${x * 100}%`);
+      b.style.setProperty("--gy", `${y * 100}%`);
+    });
+    b.addEventListener("pointerleave", () => { b.classList.remove("live"); ["--ry", "--rx", "--gx", "--gy"].forEach((v) => b.style.removeProperty(v)); });
+  });
+}
+
 function bookCard(s, href, cls = "") {
-  const inner = `<span class="spine" style="--bk:${COLORS[s.key]}"></span><span class="pages"></span>
-    <span class="front">${s.cover ? `<img src="/art/${s.cover}?thumb=1" alt="" width="320" height="480" style="view-transition-name:cover-${s.key}">` : `<span class="painting">Being painted</span>`}<span class="title">${esc(s.title)}</span></span>`;
-  return `<a class="book3d ${cls}" href="${href}" aria-label="${esc(s.title)}">${inner}</a>`;
+  const inner = `<span class="rear"></span><span class="spine" style="--bk:${COLORS[s.key]}"></span><span class="pages"></span>
+    <span class="front">${s.cover ? `<img src="/art/${s.cover}?thumb=1" data-full="/art/${s.cover}" alt="" width="320" height="480" style="view-transition-name:cover-${s.key}">` : `<span class="painting">Being painted</span>`}<span class="title">${esc(s.title)}</span></span>`;
+  return `<a class="book3d ${cls}" data-story="${s.key}" href="${href}" aria-label="${esc(s.title)}">${inner}</a>`;
 }
 
 function viewHome() {
   const stories = catalog?.stories || [];
   const signedIn = !!me?.user;
+  setSky(stories[0]?.world);
   app.innerHTML = `
-    <div class="hero">
-      ${signedIn ? `<h2>Which story are you in next?</h2>` : `<h1>A picture book with you in it.</h1>
-      <p>Pick a book and add a photo. In under a minute, you're on all 20 pages. Each book costs $0.99.</p>
-      ${me === null ? `<div class="row"><a class="btn big" href="/auth/google">Sign in with Google to start</a>${catalog?.devLogin ? `<a class="btn ghost" href="/auth/dev">Dev sign-in</a>` : ""}</div>` : ""}`}
+    <div class="stage">
+      <div class="pitch">
+        ${signedIn ? `<h1>Which story are you in next?</h1><p>Open a book and add a photo. In under a minute, you're on all 20 pages.</p>` : `<h1>A picture book with you in it.</h1>
+        <p>Open a book and add a photo. In under a minute, you're on all 20 pages. Each book costs $0.99.</p>
+        ${me === null ? `<div class="row"><a class="btn big" href="/auth/google">Sign in with Google to start</a>${catalog?.devLogin ? `<a class="btn ghost" href="/auth/dev">Dev sign-in</a>` : ""}</div>` : ""}`}
+      </div>
+      <div class="duo">${stories.map((s) => `<div class="bookwrap">${bookCard(s, signedIn ? `#/new/${s.key}` : "/auth/google")}</div>`).join("")}</div>
     </div>
-    <div class="shelf-row">${stories.map((s) => bookCard(s, signedIn ? `#/new/${s.key}` : "/auth/google")).join("") || `<div style="aspect-ratio:2/3;width:200px"></div>`}</div>
-    ${signedIn ? `<section><h2>Your books</h2><div id="books" class="shelf"><p class="note">Opening your shelf</p></div></section>` : ""}`;
+    ${signedIn ? `<section class="band"><h2>Your books</h2><div id="books" class="shelf"><p class="note">Opening your shelf</p></div></section>` : ""}`;
+  tiltBooks();
+  app.querySelectorAll(".duo .book3d").forEach((b) => {
+    const go = () => setSky(storyOf(b.dataset.story)?.world);
+    b.addEventListener("pointerenter", go); b.addEventListener("focus", go);
+    const im = $("img", b);
+    if (im) { const full = new Image(); full.onload = () => { im.src = full.src; }; full.src = im.dataset.full; }
+  });
   if (signedIn) drawShelf();
 }
 
@@ -228,7 +320,7 @@ async function drawShelf() {
     box.innerHTML = books.length ? books.map((b) => {
       const url = b.pages[0]?.url;
       const s = { key: b.story, title: b.title, cover: null };
-      return `<div class="item"><a class="book3d tiny" href="#/book/${b.id}" aria-label="Open ${esc(b.title)}, starring ${esc(b.child.name)}"><span class="spine" style="--bk:${COLORS[b.story]}"></span><span class="pages"></span><span class="front">${url ? `<img src="${url}?thumb=1" alt="" loading="lazy">` : `<span class="painting">${b.status === "failed" ? "This one couldn't be made" : "Being painted"}</span>`}<span class="title">${esc(s.title)}</span></span></a>
+      return `<div class="item"><a class="book3d tiny" href="#/book/${b.id}" aria-label="Open ${esc(b.title)}, starring ${esc(b.child.name)}"><span class="rear"></span><span class="spine" style="--bk:${COLORS[b.story]}"></span><span class="pages"></span><span class="front">${url ? `<img src="${url}?thumb=1" alt="">` : `<span class="painting">${b.status === "failed" ? "This one couldn't be made" : "Being painted"}</span>`}<span class="title">${esc(s.title)}</span></span></a>
         <small>Starring ${esc(b.child.name)}<br>${when(b.createdAt)}${b.status === "done" ? `<br><a href="/api/books/${b.id}/pdf">Download PDF</a>` : ""}</small></div>`;
     }).join("") : `<p class="note">Your finished books live here, ready to read or download again. Pick a story above to make your first.</p>`;
   } catch (e) { box.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
@@ -239,6 +331,7 @@ function viewNew(key) {
   const s = catalog?.stories.find((x) => x.key === key);
   if (!s) { location.hash = "#/"; return; }
   document.documentElement.style.setProperty("--story", COLORS[key]);
+  setSky(s.world, true);
   const enough = me.balance >= me.bookCents;
   app.innerHTML = `
     <form class="open" id="f" enctype="multipart/form-data">
@@ -314,6 +407,7 @@ function viewBook(id) {
   app.innerHTML = `<p class="note">Opening your book</p>`;
   api(`/api/books/${id}`).then(({ book }) => {
     document.documentElement.style.setProperty("--story", COLORS[book.story]);
+    setSky(storyOf(book.story)?.world, true);
     if (book.status === "running") return viewMaking(book);
     if (book.status === "failed") return (app.innerHTML = `<div class="paper"><h2>This book couldn't be made</h2><div class="err">${esc(book.error)}</div><p>The $0.99 went back to your balance. <a href="#/new/${book.story}">Try again</a></p></div>`);
     viewReader(book);
@@ -487,6 +581,7 @@ function viewReader(book) {
 
 async function viewMoney(flash) {
   if (!me?.user) return viewHome();
+  setSky(catalog?.stories[0]?.world, true);
   app.innerHTML = `<p class="note">Opening your account</p>`;
   try {
     const w = await api("/api/wallet");
