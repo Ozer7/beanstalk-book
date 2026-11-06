@@ -160,6 +160,25 @@ details{margin-top:16px}summary{cursor:pointer;font-weight:700}
 .strip img{width:100%;height:100%;object-fit:cover}
 .scores{font-size:14.5px;margin-top:6px;color:var(--mist)}
 
+/* A real open book on wide screens */
+.spread{position:relative;width:100%;max-width:min(1060px,calc((100vh - 210px)*4/3));aspect-ratio:4/3;margin:18px auto 0;perspective:2400px;touch-action:pan-y;cursor:grab;user-select:none;transition:transform .62s cubic-bezier(.4,.05,.35,1)}
+.spread[data-state=start]{transform:translateX(-25%)}
+.spread[data-state=end]{transform:translateX(25%)}
+.side{position:absolute;top:0;bottom:0;width:50%;background:var(--paper);color:var(--ink);overflow:hidden;container-type:inline-size;box-shadow:0 22px 44px rgba(3,6,24,.55)}
+.side>img{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.side.l{left:0;border-radius:5px 0 0 5px}
+.side.r{left:50%;border-radius:0 5px 5px 0}
+.side:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3}
+.side.l:after{background:linear-gradient(270deg,rgba(40,25,5,.32),transparent 9%)}
+.side.r:after{background:linear-gradient(90deg,rgba(40,25,5,.32),transparent 9%)}
+.flip{position:absolute;left:50%;top:0;bottom:0;width:50%;transform-origin:left center;transform-style:preserve-3d;z-index:4}
+.flip.anim{transition:transform .72s cubic-bezier(.4,.05,.35,1)}
+.flip .side{left:0;width:100%;backface-visibility:hidden}
+.flip .side.l{transform:rotateY(180deg)}
+.readbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px;margin-top:18px}
+.readbar .nav{margin:0}
+.strip.wide{grid-template-columns:repeat(21,minmax(0,1fr));gap:4px;margin-top:18px}
+
 /* Money */
 .bignum{font:700 clamp(46px,8vw,76px)/1 Fraunces,Georgia,serif}
 .money{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,4vw,40px);align-items:stretch;margin-top:14px}
@@ -504,7 +523,97 @@ function pageHtml(book, i) {
   return `${art}<div class="words ${pl.font === "title" ? "title" : ""}" style="left:${b.left * 100}%;top:${b.top * 100}%;width:${(b.right - b.left) * 100}%;height:${(b.bottom - b.top) * 100}%;font-size:${size(pl.size)};${pl.mode === "framed" ? "background:none" : ""}">${lines}${sub}</div>`;
 }
 
+// On a wide screen the book opens flat: two pages, turned across the spine.
+function viewSpread(book) {
+  let at = 0, busy = false;
+  const last = book.pages.length + 1;      // pages, About Me, back cover
+  const maxAt = Math.ceil((last + 1) / 2); // the last spread has only its left page
+  const leftOf = (a) => 2 * a - 1, rightOf = (a) => 2 * a;
+  const t = book.timing || {};
+  const retried = book.pages.filter((p) => (p.attempts || []).filter((x) => !x.skipped).length > 1);
+  app.innerHTML = `<div class="row" style="justify-content:space-between"><h2>${esc(book.title)}, starring ${esc(book.child.name)}</h2><a class="btn" href="/api/books/${book.id}/pdf">Download PDF</a></div>
+    <div class="spread" id="book" tabindex="0" aria-label="The book. Use the arrow keys to turn pages."></div>
+    <div class="readbar"><p class="note">Drag a page, or use the arrow keys.</p><div class="nav"><button class="btn ghost small" id="prev">Back</button><span id="pos" class="note" style="min-width:110px;text-align:center"></span><button class="btn ghost small" id="next">Next</button></div>
+      <details style="justify-self:end"><summary>How this book was checked</summary><p class="scores">Made in ${t.totalMs ? (t.totalMs / 1000).toFixed(0) : "?"} seconds. Every picture was analysed. ${retried.length ? `${retried.length} ${retried.length === 1 ? "page was" : "pages were"} repainted: ${retried.map((p) => `page ${p.n}`).join(", ")}.` : "Every page passed the first time."}${t.outOfTime ? ` ${t.outOfTime} kept the best try when time ran out.` : ""}</p></details></div>
+    <div class="strip wide">${book.pages.map((p, n) => `<button data-i="${n}" aria-label="Page ${p.n}"><img src="${p.url}?thumb=1" alt="" loading="lazy"></button>`).join("")}<button data-i="${book.pages.length}" aria-label="About Me" style="background:var(--paper);color:var(--ink);font-size:10px;line-height:1.1">About Me</button></div>`;
+  const el = $("#book");
+  const face = (n, side) => (n >= 0 && n <= last ? `<div class="side ${side}">${pageHtml(book, n)}</div>` : "");
+  const state = (a) => (a === 0 ? "start" : a === maxAt ? "end" : "");
+  const settle = () => {
+    el.innerHTML = face(leftOf(at), "l") + face(rightOf(at), "r");
+    el.dataset.state = state(at);
+    const nums = [leftOf(at), rightOf(at)].filter((n) => n >= 0 && n <= last);
+    const name = (n) => (n === book.pages.length ? "About Me" : n > book.pages.length ? "The End" : n === 0 ? "Cover" : `Page ${n + 1}`);
+    $("#pos").textContent = nums.map(name).join(", ");
+    $("#prev").disabled = at === 0; $("#next").disabled = at === maxAt;
+    app.querySelectorAll(".strip button").forEach((b) => b.setAttribute("aria-current", String(nums.includes(+b.dataset.i))));
+    busy = false;
+  };
+  // The leaf between two spreads: this spread's right page on its front, the next
+  // spread's left page on its back.
+  const build = (from, to) => {
+    const a = Math.min(from, to), b = Math.max(from, to);
+    el.innerHTML = face(leftOf(a), "l") + face(rightOf(b), "r") + `<div class="flip">${face(rightOf(a), "r")}${face(leftOf(b), "l")}</div>`;
+    return $(".flip", el);
+  };
+  const finish = (flip, angle, then) => {
+    let done = false;
+    const end = () => { if (done) return; done = true; then(); };
+    flip.classList.add("anim");
+    flip.addEventListener("transitionend", end, { once: true });
+    setTimeout(end, 850);
+    requestAnimationFrame(() => { flip.style.transform = `rotateY(${angle}deg)`; });
+  };
+  const go = (to) => {
+    if (busy || to === at || to < 0 || to > maxAt) return;
+    // A jump from the strip goes straight there; a single step turns the leaf.
+    if (CALM || Math.abs(to - at) > 1) { at = to; return settle(); }
+    busy = true;
+    el.dataset.state = state(to);
+    if (to > at) finish(build(at, to), -180, () => { at = to; settle(); });
+    else {
+      const flip = build(to, at);
+      flip.style.transform = "rotateY(-180deg)";
+      flip.getBoundingClientRect();
+      finish(flip, 0, () => { at = to; settle(); });
+    }
+  };
+  $("#prev").onclick = () => go(at - 1);
+  $("#next").onclick = () => go(at + 1);
+  app.querySelectorAll(".strip button").forEach((b) => (b.onclick = () => go(Math.ceil(+b.dataset.i / 2))));
+
+  let drag = null;
+  el.addEventListener("pointerdown", (e) => { if (!busy && !e.target.closest("a,button")) drag = { x: e.clientX, w: el.clientWidth / 2, dir: 0 }; });
+  addEventListener("pointermove", (e) => {
+    if (!drag || !$("#book")) return;
+    const dx = e.clientX - drag.x;
+    if (!drag.dir) {
+      if (Math.abs(dx) < 8) return;
+      drag.dir = dx < 0 ? 1 : -1;
+      const to = at + drag.dir;
+      if (to < 0 || to > maxAt) { drag = null; return; }
+      drag.to = to;
+      drag.flip = drag.dir > 0 ? build(at, to) : build(to, at);
+    }
+    drag.p = Math.min(1, Math.abs(dx) / (drag.w * 1.4));
+    const angle = drag.dir > 0 ? -180 * drag.p : -180 * (1 - drag.p);
+    drag.flip.style.transform = `rotateY(${angle}deg)`;
+  });
+  addEventListener("pointerup", () => {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (!d.flip || !$("#book")) return;
+    busy = true;
+    const commit = d.p > 0.3;
+    if (commit) el.dataset.state = state(d.to);
+    finish(d.flip, (d.dir > 0) === commit ? -180 : 0, () => { if (commit) at = d.to; settle(); });
+  });
+  settle();
+  book.pages.forEach((p) => { new Image().src = p.url; });
+}
+
 function viewReader(book) {
+  if (matchMedia("(min-width: 1000px)").matches) return viewSpread(book);
   let i = 0, busy = false;
   const count = book.pages.length + 2; // the pages, About Me, the back cover
   const t = book.timing || {};

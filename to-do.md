@@ -22,7 +22,7 @@
 - **Render Starter is needed ($7 a month).** On the free plan the book took 43 to 55 seconds and redos didn't fit.
 - **The test card is free money, but images aren't.** So there is a limit of 10 books per account and 60 across the site per day.
 - **Neon free tier is 0.5 GB.** A book is about 7 MB of pictures, so that's about 60 books. Old books should move to object storage.
-- **Books can't start for about a minute after a deploy** on the free plan, less on Starter, while the art loads into memory.
+- **Books can't start for a short while after a deploy**, while the art loads into memory.
 
 ## Next
 - **About Me only prints English letters.** Hebrew needs its own font and right-to-left layout.
