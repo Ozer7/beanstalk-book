@@ -28,7 +28,7 @@ async function call(path, opts = {}) {
 const J = async (path, opts) => { const r = await call(path, opts); return { status: r.status, body: await r.json() }; };
 
 // art
-for (let i = 0; i < 300; i++) { const c = await (await fetch(`${base}/catalog.json`)).json(); if (c.stories.every((s) => s.ready)) break; await new Promise((r) => setTimeout(r, 300)); }
+for (let i = 0; i < 300; i++) { const c = await (await fetch(`${base}/catalog.json`)).json(); if (c.art.state === "ready") break; await new Promise((r) => setTimeout(r, 300)); }
 const bible = await (await fetch(`${base}/bible.json`)).json();
 assert.equal(bible.status.state, "ready");
 assert.equal(bible.stories.length, 2);

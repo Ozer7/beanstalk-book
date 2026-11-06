@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import compression from "compression";
 import path from "node:path";
+import sharp from "sharp";
 import { createRequire } from "node:module";
 import { log, httpLog } from "./lib/log.js";
 import * as db from "./lib/db.js";
@@ -82,13 +83,25 @@ app.get("/api/me", route(async (req) => {
   return { user: req.user, balance: await wallet.balance(req.user.id), bookCents: wallet.BOOK_CENTS };
 }));
 
-app.get("/img/:id", async (req, res) => {
+app.get("/img/:id(\\d+)", async (req, res) => {
   try {
     const img = await db.readImage(Number(req.params.id), req.user.id, !!req.query.thumb);
     if (!img) return res.status(404).end();
     res.setHeader("Content-Type", req.query.thumb ? "image/jpeg" : img.mime);
     res.setHeader("Cache-Control", "private, max-age=31536000, immutable");
     res.send(img.data);
+  } catch (err) { sendError(res, err); }
+});
+
+// A picture as base64 text, small, for checking a book from a machine whose
+// network filter blanks out images of people.
+app.get("/img/:id.txt", async (req, res) => {
+  try {
+    const img = await db.readImage(Number(req.params.id), req.user.id, false);
+    if (!img) return res.status(404).end();
+    const w = Math.min(1024, Number(req.query.w) || 256);
+    const out = await sharp(img.data).resize({ width: w }).jpeg({ quality: Number(req.query.q) || 60 }).toBuffer();
+    res.type("text/plain").send(out.toString("base64"));
   } catch (err) { sendError(res, err); }
 });
 
