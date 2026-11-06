@@ -232,12 +232,6 @@ for (const b of stranded) await wallet.refundFailedBook({ userId: b.user_id, boo
 app.listen(PORT, () => log.info({ port: PORT, mock: MOCK }, "Storybook is up"));
 ensureArt();
 
-// Render's free plan sleeps after 15 quiet minutes, and waking takes a minute.
-// Visiting ourselves through the public address keeps "near-instant" true.
-if (process.env.RENDER_EXTERNAL_URL) {
-  setInterval(() => fetch(`${process.env.RENDER_EXTERNAL_URL}/healthz`).catch(() => {}), 10 * 60 * 1000).unref();
-}
-
 // ---------------------------------------------------------------------------
 function route(fn) {
   return async (req, res) => {
