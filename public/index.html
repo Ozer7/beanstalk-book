@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storybook: a picture book with you in it</title>
+<meta name="description" content="Upload a photo and get a 20-page picture book starring you, in under a minute.">
+<link rel="preload" href="/fonts/andika/andika-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fraunces/fraunces-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:Andika;src:url(/fonts/andika/andika-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Andika;src:url(/fonts/andika/andika-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Fraunces;src:url(/fonts/fraunces/fraunces-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
+:root{--sky:#dfeaf2;--ink:#1b2a41;--soft:#51607a;--paper:#fffdf6;--line:#b9c9d6;--bean:#256b45;--hood:#b8272f;--egg:#e5ae32;--story:var(--ink)}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--sky);color:var(--ink);font:400 17px/1.55 Andika,system-ui,sans-serif}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:700;line-height:1.08;margin:0}
+h1{font-size:clamp(38px,6.4vw,68px);letter-spacing:-.015em;max-width:15ch}
+h2{font-size:clamp(25px,3.2vw,33px)}
+h3{font-size:20px}
+p{margin:0}
+a{color:inherit}
+img{display:block;max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{display:flex;align-items:center;gap:18px;padding:18px 0}
+.logo{font:700 23px Fraunces,Georgia,serif;text-decoration:none;margin-right:auto}
+.linkish{background:none;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.balance{font-weight:700;text-decoration:none;background:var(--paper);border:1.5px solid var(--ink);border-radius:999px;padding:3px 14px;white-space:nowrap}
+.btn{display:inline-block;background:var(--ink);color:var(--paper);border:0;border-radius:8px;padding:12px 22px;font-weight:700;cursor:pointer;text-decoration:none;text-align:center}
+.btn:hover{background:#2b3f5e}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.btn.ghost:hover{background:var(--paper)}
+.btn.small{padding:7px 14px;font-size:15px}
+.hero{padding:26px 0 8px;display:grid;gap:16px}
+.hero p{max-width:50ch;font-size:19px;color:var(--soft)}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.covers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,3vw,34px);margin:28px 0 12px;max-width:760px}
+.cover{display:block;text-decoration:none;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.cover .art{aspect-ratio:2/3;border-radius:3px 9px 9px 3px;overflow:hidden;background:#c7d7e3;box-shadow:inset 7px 0 8px -5px rgba(27,42,65,.45),0 12px 22px -12px rgba(27,42,65,.6);transition:transform .18s;position:relative}
+.cover:hover .art{transform:translateY(-5px) rotate(-.6deg)}
+.cover img{width:100%;height:100%;object-fit:cover}
+.cover .name{margin-top:12px;font:700 clamp(18px,2.6vw,24px)/1.15 Fraunces,Georgia,serif}
+.cover small{color:var(--soft);font-size:15px}
+.painting{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:14px;color:var(--soft);font-size:15px}
+section{padding:30px 0}
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:24px 18px;margin-top:18px}
+.shelf .cover .art{box-shadow:inset 5px 0 6px -4px rgba(27,42,65,.45),0 8px 14px -9px rgba(27,42,65,.6)}
+.shelf .name{font-size:16px}
+footer{padding:36px 0 44px;color:var(--soft);font-size:15px}
+.err{background:#fbe9e9;color:#7c1a21;border-radius:8px;padding:10px 14px;margin:12px 0}
+.ok{background:#e4f2e8;color:#1b5234;border-radius:8px;padding:10px 14px;margin:12px 0}
+.note{color:var(--soft);font-size:15px}
+.form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:clamp(22px,5vw,60px);align-items:start;margin-top:20px}
+label{display:block;font-weight:700;margin:16px 0 5px}
+label small{font-weight:400;color:var(--soft)}
+input[type=text],input[type=number],textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--paper)}
+input:focus,textarea:focus{border-color:var(--ink);outline:0}
+textarea{min-height:76px;resize:vertical}
+.drop{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center;padding:14px;border:2px dashed var(--line);border-radius:10px;background:var(--paper);cursor:pointer}
+.drop.has{border-style:solid;border-color:var(--story)}
+.drop .ph{width:96px;height:96px;border-radius:50%;background:var(--sky);object-fit:cover}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.seg{display:inline-flex;border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.seg label{margin:0;font-weight:400;padding:6px 16px;cursor:pointer}
+.seg input{position:absolute;opacity:0}
+.seg label:has(input:checked){background:var(--ink);color:var(--paper)}
+.seg label:has(input:focus-visible){outline:3px solid var(--ink);outline-offset:-5px}
+details{margin-top:18px}
+summary{cursor:pointer;font-weight:700}
+.side .cover{cursor:default}
+.side .cover:hover .art{transform:none}
+.pay{margin-top:18px;padding-top:16px;border-top:1.5px solid var(--line)}
+.making h2{min-height:2.2em;max-width:26ch}
+.bar{height:14px;border-radius:7px;background:var(--paper);overflow:hidden;margin:14px 0 6px;box-shadow:inset 0 0 0 1.5px var(--ink)}
+.bar i{display:block;height:100%;background:var(--egg);transition:width .4s ease-out}
+.slots{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:8px;margin-top:22px}
+.slot{aspect-ratio:2/3;border-radius:3px;background:rgba(255,255,255,.55);display:grid;place-items:center;color:var(--soft);font-size:14px;overflow:hidden;position:relative}
+.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:land .3s ease-out}
+.slot.back{outline:1.5px dashed var(--line)}
+@keyframes land{from{transform:scale(1.12);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.reader{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:clamp(20px,4vw,44px);align-items:start;margin-top:14px}
+.page{container-type:inline-size;position:relative;aspect-ratio:2/3;background:var(--paper);overflow:hidden;width:100%;max-width:min(560px,calc((100vh - 90px)*2/3));margin:0 auto;border-radius:3px;box-shadow:0 18px 30px -18px rgba(27,42,65,.7)}
+.page>img{position:absolute;inset:0;width:100%;height:100%}
+.words{position:absolute;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:rgba(255,251,241,.93);border-radius:2.8cqw;color:var(--ink);white-space:nowrap}
+.words.title{font-family:Fraunces,Georgia,serif;font-weight:700}
+.words small{font-family:Andika,sans-serif;font-weight:400;color:var(--soft)}
+.about{position:absolute;inset:0;padding:6cqw;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1.5cqw;font-size:3.4cqw}
+.about h3{font-size:8cqw;color:var(--story)}
+.about img{width:50cqw;aspect-ratio:1;object-fit:cover;margin:2cqw 0}
+.about b{font:700 6cqw Fraunces,Georgia,serif}
+.about dl{margin:2cqw 0 0}.about dt{font-weight:700;color:var(--story);font-size:2.7cqw;margin-top:1.6cqw}.about dd{margin:0}
+.nav{display:flex;justify-content:center;align-items:center;gap:14px;margin:14px auto 0}
+.strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:16px}
+.strip button{padding:0;border:0;background:none;cursor:pointer;border-radius:2px;overflow:hidden;aspect-ratio:2/3;opacity:.72}
+.strip button[aria-current=true],.strip button:hover{opacity:1;outline:2px solid var(--ink)}
+.strip img{width:100%;height:100%;object-fit:cover}
+.bignum{font:700 clamp(46px,8vw,76px)/1 Fraunces,Georgia,serif}
+.money{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:clamp(24px,5vw,60px);align-items:start;margin-top:12px}
+.table{width:100%;border-collapse:collapse;font-size:16px;margin-top:10px}
+.table th{text-align:left;font-weight:700;padding:6px 10px 6px 0;border-bottom:1.5px solid var(--ink)}
+.table td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.num{text-align:right!important;white-space:nowrap;font-variant-numeric:tabular-nums}
+.plus{color:var(--bean);font-weight:700}
+.refund{display:grid;gap:8px;margin-top:8px;padding:10px;background:var(--paper);border-radius:8px}
+.scores{font-size:14.5px;margin-top:6px;color:var(--soft)}
+@media (max-width:760px){
+ .form,.reader,.money{grid-template-columns:minmax(0,1fr)}
+ .side{order:-1;max-width:190px}
+ .slots{grid-template-columns:repeat(5,minmax(0,1fr))}
+ header{gap:12px}
+ .table{font-size:15px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header id="top"><a class="logo" href="#/">Storybook</a><span id="who"></span></header>
+  <main id="app" aria-live="polite"></main>
+  <footer><a href="/bible">See the characters and every pre-painted page</a> &nbsp; <a href="/privacy">Privacy</a></footer>
+</div>
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const money = (c) => `$${(Math.abs(c) / 100).toFixed(2)}`;
+const when = (d) => new Date(d).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+const app = $("#app");
+let catalog = null, me = undefined, stream = null;
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { credentials: "same-origin", ...opts, headers: opts.body && !(opts.body instanceof FormData) ? { "Content-Type": "application/json" } : {} });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data.error || "Something went wrong. Try again."), { status: res.status });
+  return data;
+}
+const post = (path, body) => api(path, { method: "POST", body: JSON.stringify(body) });
+
+function drawTop() {
+  $("#who").className = "row";
+  $("#who").innerHTML = me?.user
+    ? `<a class="balance" href="#/money" title="Your balance and history">${money(me.balance)}</a><button class="linkish" id="out">Sign out</button>`
+    : me === null ? `<a class="btn small" href="/auth/google">Sign in with Google</a>` : "";
+  $("#out")?.addEventListener("click", async () => { await post("/auth/logout", {}); me = null; location.hash = "#/"; drawTop(); route(); });
+}
+async function refreshMe() {
+  try { const r = await api("/api/me"); me = r.user ? r : null; } catch { me = null; }
+  drawTop();
+}
+
+function coverCard(s, href) {
+  const inner = `<div class="art">${s.cover ? `<img src="/art/${s.cover}?thumb=1" alt="" width="320" height="480">` : `<div class="painting">Pictures are being painted</div>`}</div>
+    <div class="name">${esc(s.title)}</div>`;
+  return href ? `<a class="cover" href="${href}" style="--story:${s.key === "red" ? "var(--hood)" : "var(--bean)"}">${inner}</a>` : `<div class="cover">${inner}</div>`;
+}
+
+function viewHome() {
+  const stories = catalog?.stories || [];
+  const signedIn = !!me?.user;
+  app.innerHTML = `
+    ${signedIn ? `<div class="hero"><h2>Which book are you in next?</h2></div>` : `
+    <div class="hero">
+      <h1>A picture book with you in it.</h1>
+      <p>Upload a photo. In under a minute you're on all 20 pages, ready to read or download as a PDF. Each book costs $0.99.</p>
+      ${me === null ? `<div class="row"><a class="btn" href="/auth/google">Sign in with Google to start</a>${catalog?.devLogin ? `<a class="btn ghost" href="/auth/dev">Dev sign-in</a>` : ""}</div>` : ""}
+    </div>`}
+    <div class="covers">${stories.map((s) => coverCard(s, signedIn ? `#/new/${s.key}` : null)).join("") || `<div style="aspect-ratio:2/3"></div>`}</div>
+    ${signedIn ? `<section><h2>Your books</h2><div id="books" class="shelf"><p class="note">Opening your shelf</p></div></section>` : ""}`;
+  if (signedIn) drawShelf();
+}
+
+async function drawShelf() {
+  const box = $("#books");
+  try {
+    const { books } = await api("/api/books");
+    if (!$("#books")) return;
+    box.innerHTML = books.length ? books.map((b) => `
+      <div>
+        <a class="cover" href="#/book/${b.id}">
+          <div class="art">${b.pages[0] ? `<img src="${b.pages[0].url}${b.pages[0].url.includes("?") ? "&" : "?"}thumb=1" alt="" loading="lazy">` : `<div class="painting">${b.status === "failed" ? "This book couldn't be made" : "Being painted"}</div>`}</div>
+          <div class="name">${esc(b.title)}</div></a>
+        <small class="note">${esc(b.child.name)}, ${when(b.createdAt)}</small>
+        ${b.status === "done" ? `<div style="margin-top:6px"><a href="/api/books/${b.id}/pdf">Download PDF</a></div>` : ""}
+      </div>`).join("") : `<p class="note">Your finished books stay here, and you can download them again whenever you like. Pick a story above to make your first.</p>`;
+  } catch (e) { box.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+function viewNew(key) {
+  if (!me?.user) return viewHome();
+  const s = catalog?.stories.find((x) => x.key === key);
+  if (!s) { location.hash = "#/"; return; }
+  document.documentElement.style.setProperty("--story", key === "red" ? "var(--hood)" : "var(--bean)");
+  const enough = me.balance >= me.bookCents;
+  app.innerHTML = `
+    <h2>${esc(s.title)}</h2>
+    <form class="form" id="f" enctype="multipart/form-data">
+      <div>
+        <label class="drop" id="drop" for="photo" style="margin-top:0">
+          <img class="ph" id="ph" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+          <span><b>Add a photo of the star</b><br><span class="note" style="font-weight:400">One person, facing the camera, face well lit. JPEG, PNG or WEBP.</span></span>
+          <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required>
+        </label>
+        <label for="name">Their name <small>on the cover and the About Me page</small></label>
+        <input id="name" name="name" type="text" maxlength="40" required autocomplete="off">
+        <label>The story calls them</label>
+        <div class="seg" role="radiogroup">
+          ${["he", "she", "they"].map((p) => `<label><input type="radio" name="pronoun" value="${p}" ${p === s.pronoun ? "checked" : ""}>${p}</label>`).join("")}
+        </div>
+        <details><summary>Add to the About Me page <span class="note" style="font-weight:400">(optional)</span></summary>
+          <label for="age">Age</label><input id="age" name="age" type="text" maxlength="20">
+          <label for="likes">Favourite thing to do</label><input id="likes" name="likes" type="text" maxlength="60">
+          <label for="food">Favourite food</label><input id="food" name="food" type="text" maxlength="60">
+          <label for="growUp">When I grow up</label><input id="growUp" name="growUp" type="text" maxlength="60">
+          <label for="more">Anything else</label><textarea id="more" name="more" maxlength="300"></textarea>
+        </details>
+        <div class="pay">
+          <div id="ferr"></div>
+          ${s.ready ? `<p style="margin-bottom:10px">Your balance is <b>${money(me.balance)}</b>. This book costs <b>$0.99</b>.</p>
+          ${enough ? `<button class="btn" id="go">Make my book for $0.99</button>` : `<a class="btn" href="#/money">Add money to make this book</a>`}` : `<p class="note">This story's pictures are still being painted. Come back in a few minutes.</p>`}
+        </div>
+      </div>
+      <div class="side">${coverCard(s)}</div>
+    </form>`;
+  $("#photo").addEventListener("change", (e) => {
+    const f = e.target.files[0];
+    if (f) { $("#ph").src = URL.createObjectURL(f); $("#drop").classList.add("has"); }
+  });
+  $("#f").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const go = $("#go"); if (!go) return;
+    go.disabled = true; go.textContent = "Starting";
+    const fd = new FormData(e.target); fd.append("story", key);
+    try {
+      const { id } = await api("/api/books", { method: "POST", body: fd });
+      me.balance -= me.bookCents; drawTop();
+      location.hash = `#/book/${id}`;
+    } catch (err) {
+      $("#ferr").innerHTML = `<div class="err">${esc(err.message)}</div>`;
+      go.disabled = false; go.textContent = "Make my book for $0.99";
+    }
+  });
+}
+
+function viewBook(id) {
+  if (!me?.user) return viewHome();
+  app.innerHTML = `<p class="note">Opening your book</p>`;
+  api(`/api/books/${id}`).then(({ book }) => {
+    document.documentElement.style.setProperty("--story", book.story === "red" ? "var(--hood)" : "var(--bean)");
+    if (book.status === "running") return viewMaking(book);
+    if (book.status === "failed") return (app.innerHTML = `<h2>This book couldn't be made</h2><div class="err">${esc(book.error)}</div><p>The $0.99 went back to your balance. <a href="#/new/${book.story}">Try again</a></p>`);
+    viewReader(book);
+  }).catch((e) => (app.innerHTML = `<div class="err">${esc(e.message)}</div>`));
+}
+
+function viewMaking(book) {
+  app.innerHTML = `<div class="making">
+    <h2 id="stage">Reading your photo</h2>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="barw"><i id="bar" style="width:2%"></i></div>
+    <div class="row note" style="justify-content:space-between"><span id="clock">0 seconds</span><span>${esc(book.title)}, starring ${esc(book.child.name)}</span></div>
+    <div class="slots">${Array.from({ length: 20 }, (_, i) => `<div class="slot" id="s${i + 1}">${i + 1}</div>`).join("")}</div>
+  </div>`;
+  const started = Date.now() ;
+  const tick = setInterval(() => { const el = $("#clock"); if (!el) return clearInterval(tick); const s = Math.round((Date.now() - started) / 1000); el.textContent = `${s} second${s === 1 ? "" : "s"}`; }, 500);
+  stream?.close();
+  stream = new EventSource(`/api/books/${book.id}/events`);
+  const seen = new Set();
+  stream.onmessage = (ev) => {
+    const s = JSON.parse(ev.data);
+    const stage = $("#stage"); if (!stage) return stream.close();
+    if (s.label) stage.textContent = s.label;
+    $("#bar").style.width = `${s.percent}%`; $("#barw").setAttribute("aria-valuenow", Math.round(s.percent));
+    for (const t of s.thumbs || []) {
+      if (seen.has(t.n)) continue; seen.add(t.n);
+      $(`#s${t.n}`).innerHTML = `<img src="${t.url}" alt="Page ${t.n}">`;
+    }
+    if (s.stage === "done" || s.stage === "failed" || s.stage === "lost") { stream.close(); clearInterval(tick); setTimeout(() => viewBook(book.id), s.stage === "done" ? 700 : 0); }
+  };
+  stream.onerror = () => { stream.close(); clearInterval(tick); setTimeout(() => { if ($("#stage")) viewBook(book.id); }, 2000); };
+}
+
+function pageHtml(book, i) {
+  const last = book.pages.length;
+  if (i === last) {
+    const c = book.child;
+    const rows = [["age", "Age"], ["likes", "Favourite thing to do"], ["food", "Favourite food"], ["growUp", "When I grow up"]].filter(([k]) => c[k]);
+    return `<div class="about"><h3>About Me</h3>${book.portrait ? `<img src="/img/${book.portrait}" alt="">` : ""}<b>${esc(c.name)}</b><span>starring as ${book.story === "red" ? "Little Red" : "Jack"}</span>
+      <dl>${rows.map(([k, l]) => `<dt>${l}</dt><dd>${esc(c[k])}</dd>`).join("")}</dl>${c.more ? `<p>${esc(c.more)}</p>` : ""}</div>`;
+  }
+  const p = book.pages[i], pl = p.place, b = pl.box;
+  const art = pl.mode === "framed" ? `<img src="${p.url}" alt="" style="left:${pl.art.left * 100}%;top:${pl.art.top * 100}%;width:${(pl.art.right - pl.art.left) * 100}%;height:${(pl.art.bottom - pl.art.top) * 100}%">` : `<img src="${p.url}" alt="">`;
+  const size = (n) => `${(n / 432) * 100}cqw`;
+  const lines = pl.lines.map((l) => `<span style="line-height:${size(pl.lineH)}">${esc(l.text)}</span>`).join("");
+  const sub = pl.sub ? `<small style="font-size:${size(pl.sub.size)};line-height:${size(pl.sub.lineH)}">${esc(pl.sub.text)}</small>` : "";
+  return `${art}<div class="words ${pl.font === "title" ? "title" : ""}" style="left:${b.left * 100}%;top:${b.top * 100}%;width:${(b.right - b.left) * 100}%;height:${(b.bottom - b.top) * 100}%;font-size:${size(pl.size)};${pl.mode === "framed" ? "background:none" : ""}">${lines}${sub}</div>`;
+}
+
+function viewReader(book) {
+  let i = 0;
+  const total = book.pages.length + 1;
+  const t = book.timing || {};
+  const retried = book.pages.filter((p) => (p.attempts || []).filter((a) => !a.skipped).length > 1);
+  app.innerHTML = `<div class="row" style="justify-content:space-between"><h2>${esc(book.title)}, starring ${esc(book.child.name)}</h2><a class="btn" href="/api/books/${book.id}/pdf">Download PDF</a></div>
+    <div class="reader">
+      <div><div class="page" id="pg"></div>
+        <div class="nav"><button class="btn ghost small" id="prev">Back</button><span id="pos" class="note" style="min-width:90px;text-align:center"></span><button class="btn ghost small" id="next">Next</button></div></div>
+      <div>
+        <p>Page through it here, or download it. It stays on your shelf, so you can come back for it any time.</p>
+        <div class="strip">${book.pages.map((p, n) => `<button data-i="${n}" aria-label="Page ${p.n}"><img src="${p.url}?thumb=1" alt="" loading="lazy"></button>`).join("")}<button data-i="${book.pages.length}" aria-label="About Me" style="background:var(--paper);font-size:11px;line-height:1.1">About Me</button></div>
+        <details style="margin-top:20px"><summary>How this book was checked</summary>
+          <p class="scores">Made in ${t.totalMs ? (t.totalMs / 1000).toFixed(0) : "?"} seconds. Every generated picture was analysed. ${retried.length ? `${retried.length} ${retried.length === 1 ? "page was" : "pages were"} repainted: ${retried.map((p) => `page ${p.n}`).join(", ")}.` : "Every page passed the first time."}${t.outOfTime ? ` ${t.outOfTime} ran out of time for another try and kept the best so far.` : ""}</p>
+        </details>
+      </div>
+    </div>`;
+  const draw = () => {
+    $("#pg").innerHTML = pageHtml(book, i);
+    $("#pos").textContent = i === book.pages.length ? "About Me" : `Page ${i + 1} of 20`;
+    $("#prev").disabled = i === 0; $("#next").disabled = i === total - 1;
+    app.querySelectorAll(".strip button").forEach((b) => b.setAttribute("aria-current", String(+b.dataset.i === i)));
+  };
+  $("#prev").onclick = () => { if (i > 0) { i--; draw(); } };
+  $("#next").onclick = () => { if (i < total - 1) { i++; draw(); } };
+  app.querySelectorAll(".strip button").forEach((b) => (b.onclick = () => { i = +b.dataset.i; draw(); }));
+  draw();
+  // Load the full pages ahead, so turning a page has no delay.
+  book.pages.forEach((p) => { new Image().src = p.url; });
+}
+
+async function viewMoney(flash) {
+  if (!me?.user) return viewHome();
+  app.innerHTML = `<p class="note">Opening your account</p>`;
+  try {
+    const w = await api("/api/wallet");
+    me.balance = w.balance; drawTop();
+    const kindLabel = { deposit: "Added", book: "Book", book_refund: "Book not charged", refund: "Refund", refund_reversed: "Refund reversed" };
+    app.innerHTML = `<h2>Your money</h2>${flash || ""}
+      <div class="money">
+        <div>
+          <div class="bignum">${money(w.balance)}</div>
+          <p class="note">${w.balance >= w.bookCents ? `Enough for ${Math.floor(w.balance / w.bookCents)} ${Math.floor(w.balance / w.bookCents) === 1 ? "book" : "books"}, at $0.99 each.` : "A book costs $0.99."}</p>
+          <h3 style="margin-top:24px">Add money</h3>
+          <div class="row" style="margin-top:10px">
+            ${[500, 1000, 2000].map((c) => `<button class="btn ghost" data-fund="${c}">${money(c)}</button>`).join("")}
+          </div>
+          <form id="other" class="row" style="margin-top:10px"><input type="number" id="amt" min="1" max="100" step="1" placeholder="Other, in dollars" aria-label="Other amount in dollars" style="flex:1;min-width:130px"><button class="btn ghost">Add</button></form>
+          <p class="note" style="margin-top:12px">This is Stripe's sandbox, so no real money moves. On Stripe's page, pay with card 4242 4242 4242 4242, any future date, and any CVC.</p>
+          <div id="merr"></div>
+          <h3 style="margin-top:26px">Get a refund</h3>
+          ${w.payments.length ? w.payments.map((p) => {
+            const left = Math.min(p.cents - p.refunded, w.balance);
+            return `<div style="border-bottom:1px solid var(--line);padding:9px 0"><div class="row" style="justify-content:space-between"><span>${money(p.cents)} on ${when(p.paid_at)}</span>
+              ${left >= 50 ? `<button class="linkish" data-open="${p.id}">Request a refund</button>` : `<span class="note">${p.refunded ? `${money(p.refunded)} refunded` : "Already spent"}</span>`}</div>
+              <form class="refund" data-refund="${p.id}" hidden>
+                <label style="margin:0" for="r${p.id}">Amount in dollars <small>up to ${money(left)}</small></label>
+                <input id="r${p.id}" type="number" step="0.01" min="0.50" max="${(left / 100).toFixed(2)}" value="${(left / 100).toFixed(2)}">
+                <label style="margin:0" for="rr${p.id}">Why? <small>optional</small></label><input id="rr${p.id}" type="text" maxlength="200">
+                <button class="btn small">Refund to my card</button>
+              </form></div>`; }).join("") : `<p class="note">Money you add can be refunded here, up to what's left in your balance.</p>`}
+          ${w.refunds.length ? `<h3 style="margin-top:22px">Refund requests</h3>${w.refunds.map((r) => `<p style="margin-top:8px"><b>${money(r.cents)}</b> ${r.status === "processed" ? "sent back to your card" : r.status === "failed" ? "failed, and the money is back in your balance" : "requested"}<br><span class="note">Requested ${when(r.requested_at)}${r.processed_at ? `, processed ${when(r.processed_at)}` : ""}${r.stripe_refund ? `. Stripe ${esc(r.stripe_refund)}` : ""}</span></p>`).join("")}` : ""}
+        </div>
+        <div>
+          <h3>Transaction history</h3>
+          ${w.ledger.length ? `<table class="table"><thead><tr><th>When</th><th>What caused it</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead><tbody>
+            ${w.ledger.map((l) => `<tr><td style="white-space:nowrap">${when(l.at)}</td><td><b>${kindLabel[l.kind] || esc(l.kind)}</b><br><span class="note">${l.bookId ? `<a href="#/book/${l.bookId}">${esc(l.cause)}</a>` : esc(l.cause)}</span></td><td class="num ${l.cents > 0 ? "plus" : ""}">${l.cents > 0 ? "+" : "-"}${money(l.cents)}</td><td class="num">${money(l.balanceAfter)}</td></tr>`).join("")}
+          </tbody></table>` : `<p class="note" style="margin-top:8px">Every credit and debit appears here, with what caused it. Add money to start.</p>`}
+        </div>
+      </div>`;
+    const fund = async (cents) => {
+      try { const { url } = await post("/api/wallet/fund", { cents }); location.href = url; }
+      catch (e) { $("#merr").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+    };
+    app.querySelectorAll("[data-fund]").forEach((b) => (b.onclick = () => { b.disabled = true; fund(+b.dataset.fund); }));
+    $("#other").onsubmit = (e) => { e.preventDefault(); fund(Math.round(+$("#amt").value * 100)); };
+    app.querySelectorAll("[data-open]").forEach((b) => (b.onclick = () => { const f = app.querySelector(`[data-refund="${b.dataset.open}"]`); f.hidden = !f.hidden; }));
+    app.querySelectorAll("[data-refund]").forEach((f) => (f.onsubmit = async (e) => {
+      e.preventDefault();
+      const id = f.dataset.refund, btn = $("button", f);
+      btn.disabled = true; btn.textContent = "Refunding";
+      try {
+        const r = await post("/api/refunds", { paymentId: +id, cents: Math.round(+$(`#r${id}`).value * 100), reason: $(`#rr${id}`).value });
+        viewMoney(`<div class="ok">Refund processed: ${money(r.cents)} is on its way back to your card.</div>`);
+      } catch (err) { btn.disabled = false; btn.textContent = "Refund to my card"; $("#merr").innerHTML = `<div class="err">${esc(err.message)}</div>`; }
+    }));
+  } catch (e) { app.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+
+function route() {
+  stream?.close();
+  document.documentElement.style.removeProperty("--story");
+  const [, a, b] = location.hash.split("/");
+  window.scrollTo(0, 0);
+  if (a === "new") return viewNew(b);
+  if (a === "book") return viewBook(+b);
+  if (a === "money") return viewMoney();
+  viewHome();
+}
+addEventListener("hashchange", route);
+addEventListener("keydown", (e) => {
+  if (e.target.matches("input,textarea")) return;
+  if (e.key === "ArrowRight") $("#next")?.click();
+  if (e.key === "ArrowLeft") $("#prev")?.click();
+});
+
+// The page draws at once; the catalog and sign-in state fill in behind it.
+viewHome();
+fetch("/catalog.json").then((r) => r.json()).then((c) => { catalog = c; route(); });
+refreshMe().then(async () => {
+  const params = new URLSearchParams(location.search);
+  const funded = params.get("funded");
+  if (funded && me?.user) {
+    history.replaceState(null, "", "/#/money");
+    try { await post("/api/wallet/confirm", { sessionId: funded }); await refreshMe(); viewMoney(`<div class="ok">Money added. Your balance is ${money(me.balance)}.</div>`); return; } catch {}
+  }
+  if (params.get("signin")) history.replaceState(null, "", "/" + location.hash);
+  route();
+});
+</script>
+</body>
+</html>

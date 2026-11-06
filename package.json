@@ -1,0 +1,34 @@
+{
+  "name": "beanstalk-book",
+  "version": "1.0.0",
+  "description": "A 20-page picture book starring you: Jack and the Beanstalk or Little Red Riding Hood",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --env-file=.env server.js",
+    "test": "node scripts/smoke-test.js"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@fontsource/andika": "^5.3.0",
+    "@fontsource/fraunces": "^5.3.0",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "compression": "^1.8.2",
+    "connect-pg-simple": "^10.0.0",
+    "express": "^4.22.3",
+    "express-session": "^1.19.0",
+    "multer": "^2.5.0",
+    "openai": "^7.52.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "pdf-lib": "^1.17.1",
+    "pg": "^8.23.1",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
+    "sharp": "^0.35.5",
+    "stripe": "^23.1.0"
+  }
+}

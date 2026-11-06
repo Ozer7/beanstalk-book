@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Character Bible</title>
+<style>
+@font-face{font-family:Andika;src:url(/fonts/andika/andika-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Fraunces;src:url(/fonts/fraunces/fraunces-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
+:root{--sky:#dfeaf2;--ink:#1b2a41;--soft:#51607a;--paper:#fffdf6}
+body{margin:0;background:var(--sky);color:var(--ink);font:400 16px/1.5 Andika,system-ui,sans-serif}
+.w{max-width:1120px;margin:0 auto;padding:22px 20px 60px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;margin:0}h1{font-size:44px}h2{font-size:30px;margin-top:36px}h3{font-size:20px;margin-top:22px}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:18px;margin-top:12px}
+.g.c{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+img{display:block;width:100%}.pic{position:relative;aspect-ratio:2/3;background:#c7d7e3;container-type:inline-size;overflow:hidden}
+.pic img{position:absolute;inset:0;height:100%}
+.b{position:absolute;border:2px solid #e5ae32;display:none}.b.h{border-color:#b8272f}.t{position:absolute;background:rgba(255,251,241,.9);border-radius:2cqw;display:none;outline:2px solid #256b45}
+body.show .b,body.show .t{display:block}
+small{color:var(--soft)}p{max-width:68ch}.bad{color:#7c1a21}
+label{cursor:pointer}
+</style></head><body><div class="w">
+<a href="/">Back to Storybook</a>
+<h1>The character bible</h1>
+<p>Every character and every page of both stories is painted once and stored in the database. When you make a book, you're edited into these pages. Both stories fill in the same 20-page template.</p>
+<p id="st"></p>
+<label><input type="checkbox" id="sw"> Show where the words go (green) and what they must not cover (gold, with the hero's head in red)</label>
+<div id="o"></div>
+<script>
+const esc=(s)=>String(s??"").replace(/[&<>"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const sw=document.getElementById("sw");sw.onchange=()=>document.body.classList.toggle("show",sw.checked);
+const pct=(b)=>`left:${b.left*100}%;top:${b.top*100}%;width:${(b.right-b.left)*100}%;height:${(b.bottom-b.top)*100}%`;
+async function load(){
+ const d=await (await fetch("/bible.json")).json();
+ const s=d.status;
+ document.getElementById("st").textContent=s.state==="ready"?"All art is ready.":s.state==="stopped"?`Painting stopped: ${s.error}`:s.state==="off"?"":`Painting: ${s.state}, ${s.done} of ${s.total} done.`;
+ document.getElementById("o").innerHTML=d.stories.map((st)=>`<h2>${esc(st.title)}</h2><h3>The cast</h3><div class="g c">${st.cast.map((c)=>`<div><img src="/art/${c.image}?thumb=1" alt="${esc(c.name)}" loading="lazy"><b>${esc(c.name)}</b><br><small>${esc(c.description)}</small></div>`).join("")}</div>
+ <h3>The pages</h3><div class="g">${st.pages.map((p)=>`<div><div class="pic">${p.image?`<img src="/art/${p.image}?thumb=1" alt="Page ${p.n}" loading="lazy">`:""}${(p.protected||[]).map((b)=>`<i class="b ${/hero head/.test(b.label)?"h":""}" title="${esc(b.label)}" style="${pct(b)}"></i>`).join("")}${p.place&&p.place.box?`<i class="t" style="${pct(p.place.box)}"></i>`:""}</div><b>${p.n}</b> <small>${esc(p.text)}</small>${p.score!=null?`<br><small>score ${p.score}, ${p.attempts.filter((a)=>!a.skipped).length} of 3 generations${p.place?.mode==="framed"?", framed":""}</small>`:""}${(p.problems||[]).length?`<br><small class="bad">${esc(p.problems.join("; "))}</small>`:""}</div>`).join("")}</div>`).join("");
+ if(!["ready","stopped","off"].includes(s.state)) setTimeout(load,20000);
+}
+load();
+</script></div></body></html>

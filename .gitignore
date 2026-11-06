@@ -1,0 +1,9 @@
+# secrets: keys live in .env locally and in Render's Environment tab, never in git
+.env
+.env.*
+!.env.example
+
+node_modules/
+out/
+*.log
+.DS_Store
