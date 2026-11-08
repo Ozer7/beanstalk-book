@@ -476,7 +476,7 @@ function viewNew(key) {
       me.balance -= me.bookCents; drawTop();
       location.hash = `#/book/${id}`;
     } catch (err) {
-      $("#ferr").innerHTML = `<div class="err">${esc(err.message)}</div>`;
+      $("#ferr").innerHTML = `<div class="err">${esc(err.message)}${err.status === 402 ? ` <a href="#/money" style="color:inherit;font-weight:700">Add money</a>` : ""}</div>`;
       go.disabled = false; go.textContent = "Make my book for $0.99";
     }
   });
