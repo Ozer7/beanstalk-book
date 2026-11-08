@@ -10,7 +10,7 @@ const PORT = 3456, STRIPE = 12111;
 const base = `http://localhost:${PORT}`;
 const fake = await startFakeStripe(STRIPE);
 const child = spawn("node", ["server.js"], {
-  stdio: ["ignore", "ignore", "inherit"],
+  stdio: ["ignore", process.env.SMOKE_LOGS ? "inherit" : "ignore", "inherit"],
   env: { ...process.env, PORT, MOCK_IMAGES: "1", MOCK_DELAY_MS: "150", MOCK_FAIL_PAGES: "5", DEV_LOGIN: "1", PGSSL: "0", STRIPE_SECRET_KEY: "sk_test_fake", STRIPE_API_HOST: "localhost", STRIPE_API_PORT: String(STRIPE), STRIPE_API_PROTOCOL: "http", SESSION_SECRET: "x", RENDER: "" },
 });
 const done = (code) => { child.kill(); fake.server.close(); process.exit(code); };
@@ -47,7 +47,7 @@ assert.equal((await J("/api/books", { method: "POST", body: form("jack") })).sta
 
 // fund
 const fund = await J("/api/wallet/fund", { method: "POST", json: { cents: 500 } });
-assert.equal(fund.status, 200);
+assert.equal(fund.status, 200, JSON.stringify(fund.body));
 const sid = fund.body.url.split("/").pop();
 assert.equal((await J("/api/wallet/confirm", { method: "POST", json: { sessionId: sid } })).body.credited, false, "unpaid isn't credited");
 await fake.pay(sid);
