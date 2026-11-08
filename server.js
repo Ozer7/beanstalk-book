@@ -29,7 +29,7 @@ app.use(httpLog);
 // ---------------------------------------------------------------------------
 // Public and instant: nothing here touches sessions or waits on the database.
 // ---------------------------------------------------------------------------
-app.get("/healthz", (_req, res) => res.send("ok"));
+app.get("/healthz", (_req, res) => res.send(`ok ${(process.env.RENDER_GIT_COMMIT || "").slice(0, 7)}`.trim()));
 const require = createRequire(import.meta.url);
 for (const [pkg, subset] of [["andika", "latin"], ["fraunces", "latin"], ["noto-sans-hebrew", "hebrew"]]) {
   const dir = path.dirname(require.resolve(`@fontsource/${pkg}/files/${pkg}-${subset}-700-normal.woff2`));
