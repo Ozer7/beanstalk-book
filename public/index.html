@@ -90,7 +90,8 @@ body:not(.risen) .bookwrap:nth-child(2){animation-delay:.14s}
 .shelf .book3d{margin:0 auto}
 .shelf small{text-align:center}
 .shelf small{display:block;margin-top:12px;color:#e0e5f4;font-size:14px;line-height:1.35}
-.band{margin-top:30px;padding:26px clamp(16px,3vw,30px) 30px;background:rgba(13,18,50,.62);backdrop-filter:blur(10px);border-radius:14px}
+/* No backdrop blur here: Chrome slices the tilted 3D books inside a blurred panel. */
+.band{margin-top:30px;padding:26px clamp(16px,3vw,30px) 30px;background:rgba(13,18,50,.84);border-radius:14px}
 section{padding:30px 0}
 
 /* An open book */
@@ -186,7 +187,11 @@ details{margin-top:16px}summary{cursor:pointer;font-weight:700}
 .bignum{font:700 clamp(46px,8vw,76px)/1 Fraunces,Georgia,serif}
 .money{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,4vw,40px);align-items:stretch;margin-top:14px}
 .paper{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .36 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"),var(--paper);color:var(--ink);border-radius:6px;padding:clamp(18px,3vw,28px);box-shadow:0 16px 30px rgba(0,0,0,.35)}
-.table{width:100%;border-collapse:collapse;font-size:16px;margin-top:10px}
+.tablewrap{overflow-x:auto;margin-top:10px}
+.table{width:100%;border-collapse:collapse;font-size:16px}
+.table td:nth-child(2){overflow-wrap:anywhere}
+.table .day{white-space:nowrap}
+.paper .note{overflow-wrap:anywhere}
 .table th{text-align:left;font-weight:700;padding:6px 10px 6px 0;border-bottom:1.5px solid var(--ink)}
 .table td{padding:9px 10px 9px 0;border-bottom:1px solid var(--edge);vertical-align:top}
 .num{text-align:right!important;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -221,6 +226,8 @@ const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const money = (c) => `$${(Math.abs(c) / 100).toFixed(2)}`;
 const when = (d) => new Date(d).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+// In a narrow table: the day on one line, the time under it.
+const whenLines = (d) => { const t = new Date(d); return `<span class="day">${t.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span><br><span class="note">${t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span>`; };
 const app = $("#app");
 const COLORS = { jack: "var(--jack)", red: "var(--red)" };
 const CALM = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -748,9 +755,9 @@ async function viewMoney(flash) {
         </div>
         <div class="paper onpaper">
           <h3>Transaction history</h3>
-          ${w.ledger.length ? `<table class="table"><thead><tr><th>When</th><th>What caused it</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead><tbody>
-            ${w.ledger.map((l) => `<tr><td style="white-space:nowrap">${when(l.at)}</td><td><b>${kindLabel[l.kind] || esc(l.kind)}</b><br><span class="note">${l.bookId ? `<a href="#/book/${l.bookId}">${esc(l.cause)}</a>` : esc(l.cause)}</span></td><td class="num ${l.cents > 0 ? "plus" : ""}">${l.cents > 0 ? "+" : "-"}${money(l.cents)}</td><td class="num">${money(l.balanceAfter)}</td></tr>`).join("")}
-          </tbody></table>` : `<p class="note" style="margin-top:8px">Every credit and debit appears here, with what caused it. Add money to start.</p>`}
+          ${w.ledger.length ? `<div class="tablewrap"><table class="table"><thead><tr><th>When</th><th>What caused it</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead><tbody>
+            ${w.ledger.map((l) => `<tr><td>${whenLines(l.at)}</td><td><b>${kindLabel[l.kind] || esc(l.kind)}</b><br><span class="note">${l.bookId ? `<a href="#/book/${l.bookId}">${esc(l.cause)}</a>` : esc(l.cause)}</span></td><td class="num ${l.cents > 0 ? "plus" : ""}">${l.cents > 0 ? "+" : "-"}${money(l.cents)}</td><td class="num">${money(l.balanceAfter)}</td></tr>`).join("")}
+          </tbody></table></div>` : `<p class="note" style="margin-top:8px">Every credit and debit appears here, with what caused it. Add money to start.</p>`}
         </div>
       </div>`;
     const fund = async (cents) => {
