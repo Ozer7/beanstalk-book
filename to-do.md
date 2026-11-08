@@ -12,7 +12,7 @@
 - [x] **Words never on a face.** The faces come from a painted mask, not a guess, and the words are placed to clear them. If nothing clears, the art is framed and the words go below it.
 
 ## Defects I know about
-- **Stand-in's hair.** Every stand-in now has its hair cropped short in the stored art, and the check asks a direct yes-or-no about hair that isn't the reader's. On a real book (43 seconds) it was gone on 19 pages. On Jack page 13 a small spiky tuft stayed above the head; the check caught it all 3 tries, so that page kept its best-of-three.
+- **Stand-in's hair: fixed.** Every stand-in has its hair cropped short in the stored art, and the check asks a direct yes-or-no about hair that isn't the reader's. Jack page 13 had a comic tuft floating above the head, just past the blend oval, so all 3 tries kept it (55, 55, 55). The blend now reaches higher above the head, with a squarer top, and skips other characters' faces; that page was trimmed again. Next book: page 13 scored 92 on the first try, whole book 37 seconds.
 - **Tested with one person's photo.** No child, long hair, dark skin, or head covering other than a kippah has been tried yet. That is the biggest open risk to likeness.
 - **Page 12 in Jack is the hardest page.** Jack's head is small in the pot, and it used all 3 tries in one run. The loop handles it, but it's the likeliest page to keep a so-so best-of-three.
 - **Body boxes from the vision model can be wrong.** Faces come from a painted mask and are exact; bodies don't. A page that can't fit its words gets up to two more looks, and the fallback layout can't put words on a face.
