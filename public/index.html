@@ -820,7 +820,7 @@ async function viewMoney(flash) {
         <div class="paper onpaper">
           <h3>Transaction history</h3>
           ${w.ledger.length ? `<div class="tablewrap"><table class="table"><thead><tr><th>When</th><th>What caused it</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead><tbody>
-            ${w.ledger.map((l) => `<tr><td>${whenLines(l.at)}</td><td><b>${kindLabel[l.kind] || esc(l.kind)}</b><br><span class="note">${l.bookId ? `<a href="#/book/${l.bookId}">${esc(l.cause)}</a>` : esc(l.cause)}</span></td><td class="num ${l.cents > 0 ? "plus" : ""}">${l.cents > 0 ? "+" : "-"}${money(l.cents)}</td><td class="num">${money(l.balanceAfter)}</td></tr>`).join("")}
+            ${w.ledger.map((l) => `<tr><td>${whenLines(l.at)}</td><td><b>${kindLabel[l.kind] || esc(l.kind)}</b><br><span class="note">${l.bookId ? `<a href="#/book/${l.bookId}">${esc(l.cause)}</a>` : `${esc(l.cause)}${/^book/.test(l.kind) ? " (deleted from your shelf)" : ""}`}</span></td><td class="num ${l.cents > 0 ? "plus" : ""}">${l.cents > 0 ? "+" : "-"}${money(l.cents)}</td><td class="num">${money(l.balanceAfter)}</td></tr>`).join("")}
           </tbody></table></div>` : `<p class="note" style="margin-top:8px">Every credit and debit appears here, with what caused it. Add money to start.</p>`}
         </div>
         ${costCard(cost)}
