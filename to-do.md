@@ -8,19 +8,22 @@
 - [x] **Under 60 seconds.** Measured on Render Starter: 34, 36 and 36 seconds with redos; 51 seconds with a page that used all 3 tries. There is a hard time limit, so a slow redo is dropped and the book still lands on time.
 - [x] **Named progress stages, thumbnails as each page finishes.**
 - [x] **Still there tomorrow.** Images live in Postgres; the PDF is rebuilt from them. A book from hours earlier downloaded in 2 seconds.
-- [x] **Quality loop.** Every generated image is analysed, redone up to 3 generations, and the best is kept.
+- [x] **Quality loop, visible.** Every generated image is analysed, redone up to 3 generations, and the best is kept. Every picture shows its try count out of 3 (a ★ when none passed and the best was kept): live on the painting screen, on the reader's thumbnails, and under the page being read.
+- [x] **What a book costs to make.** Every OpenAI call (image edits, retries, analysis checks, the photo description) is priced from its token counts at OpenAI's published rates and logged per book in `api_calls` (`lib/cost.js`). The purse shows the average against the $0.99 price. Measured: $0.541 a book over the first 2 books (first tries $0.490, retries $0.016, checks $0.035).
+- [x] **Self-review.** `storybook-review` run 1 scored 98 (`review-log.md`); its Fix-first items 1, 3 and 4 are fixed, and 2 is tightened.
 - [x] **Words never on a face.** The faces come from a painted mask, not a guess, and the words are placed to clear them. If nothing clears, the art is framed and the words go below it.
 
 ## Defects I know about
 - **Stand-in's hair: fixed.** Every stand-in has its hair cropped short in the stored art, and the check asks a direct yes-or-no about hair that isn't the reader's. Jack page 13 had a comic tuft floating above the head, just past the blend oval, so all 3 tries kept it (55, 55, 55). The blend now reaches higher above the head, with a squarer top, and skips other characters' faces; that page was trimmed again. Next book: page 13 scored 92 on the first try, whole book 37 seconds.
 - **Half-changed and pasted-looking faces: fixed.** Jack page 20 kept half the stand-in's face (his cartoon eye) because the cow's face box, which the blend protects, overlapped the hero's cheek. Other faces are now protected only outside the hero's own head. The face check also asks two more yes-or-no questions: is any part of the stand-in still showing, and does the face look like a pasted photo. It no longer marks a page down for looking painted rather than like the photo. Next book: 27 seconds, every page passed first time, pages 2 and 20 clean.
-- **Tested with one person's photo.** No child, long hair, dark skin, or head covering other than a kippah has been tried yet. That is the biggest open risk to likeness.
+- **Likeness on unfamiliar photos.** Review run 1 used an AI-generated girl with long curly hair: both books came out recognisably her, long hair included. On Red p9 and Jack p11 she read a little older, and the check passed them; it now marks down a face that looks a different age. Dark skin and head coverings other than a kippah are still untried.
+- **Small type on short bands.** When a page's clear band is short, the words shrink (Red p2 went down to about 16 pt). Legible, but smaller than the rest of the book.
 - **Page 12 in Jack is the hardest page.** Jack's head is small in the pot, and it used all 3 tries in one run. The loop handles it, but it's the likeliest page to keep a so-so best-of-three.
 - **Body boxes from the vision model can be wrong.** Faces come from a painted mask and are exact; bodies don't. A page that can't fit its words gets up to two more looks, and the fallback layout can't put words on a face.
 
 ## Cost and limits
 - **Render Starter is needed ($7 a month).** On the free plan the book took 43 to 55 seconds and redos didn't fit.
-- **The test card is free money, but images aren't.** So there is a limit of 10 books per account and 60 across the site per day.
+- **The test card is free money, but images aren't.** A book costs about $0.54 to make, 55% of the $0.99 price, and each retry eats into that. So there is a limit of 10 books per account and 60 across the site per day.
 - **Neon free tier is 0.5 GB.** A book is about 7 MB of pictures, so that's about 60 books. Old books should move to object storage.
 - **Books can't start for a short while after a deploy**, while the art loads into memory.
 
