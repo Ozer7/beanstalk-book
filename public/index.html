@@ -190,7 +190,7 @@ details{margin-top:16px}summary{cursor:pointer;font-weight:700}
 .tablewrap{overflow-x:auto;margin-top:10px}
 .table{width:100%;border-collapse:collapse;font-size:16px}
 .table td:nth-child(2){overflow-wrap:anywhere}
-.table .day{white-space:nowrap}
+.table .day,.table .time{white-space:nowrap}
 .paper .note{overflow-wrap:anywhere}
 .table th{text-align:left;font-weight:700;padding:6px 10px 6px 0;border-bottom:1.5px solid var(--ink)}
 .table td{padding:9px 10px 9px 0;border-bottom:1px solid var(--edge);vertical-align:top}
@@ -227,7 +227,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const money = (c) => `$${(Math.abs(c) / 100).toFixed(2)}`;
 const when = (d) => new Date(d).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 // In a narrow table: the day on one line, the time under it.
-const whenLines = (d) => { const t = new Date(d); return `<span class="day">${t.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span><br><span class="note">${t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span>`; };
+const whenLines = (d) => { const t = new Date(d); return `<span class="day">${t.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span><br><span class="note time">${t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span>`; };
 const app = $("#app");
 const COLORS = { jack: "var(--jack)", red: "var(--red)" };
 const CALM = matchMedia("(prefers-reduced-motion: reduce)").matches;
