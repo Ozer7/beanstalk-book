@@ -72,13 +72,23 @@ for (const story of ["jack", "red"]) {
     const five = b.pages.find((p) => p.n === 5);
     assert.equal(five.attempts.filter((a) => !a.skipped).length, 3, "fails 3 times");
     assert.equal(five.score, 40, "kept the best of 3");
+    assert.equal(five.passed, false, "page 5 marked as none passed");
+    assert.ok(five.kept >= 1 && five.kept <= 3, "page 5 names the kept try");
   }
+  for (const p of b.pages) assert.ok(p.attempts.length >= 1 || p.ahead, `page ${p.n} has an attempt count`);
+  assert.ok(b.timing.costUsd > 0, "book cost tracked");
+  assert.ok(b.timing.apiCalls.images >= 20 && b.timing.apiCalls.checks >= 20, "image and check calls counted");
   const pdf = await call(`/api/books/${id}/pdf`);
   assert.equal(pdf.status, 200);
   const buf = Buffer.from(await pdf.arrayBuffer());
   fs.mkdirSync("out", { recursive: true }); fs.writeFileSync(`out/${story}.pdf`, buf);
-  console.log(story, "book ok in", Date.now() - t, "ms, pdf", buf.length, "bytes");
+  console.log(story, "book ok in", Date.now() - t, "ms, pdf", buf.length, "bytes, cost $" + b.timing.costUsd);
 }
+await new Promise((r) => setTimeout(r, 300)); // let the last cost rows land
+const costs = (await J("/api/costs")).body;
+assert.ok(costs.books >= 2 && costs.avg > 0 && costs.price === 0.99, "average cost per book shown against $0.99");
+assert.ok(costs.parts.retries > 0, "retries costed separately");
+console.log("costs ok: average $" + costs.avg.toFixed(3), "over", costs.books, "books");
 
 // Hebrew on the cover and the About Me page, and deleting a book
 {

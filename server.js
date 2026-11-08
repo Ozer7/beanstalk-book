@@ -8,7 +8,9 @@ import { log, httpLog } from "./lib/log.js";
 import * as db from "./lib/db.js";
 import { setupAuth, requireUser, DEV_LOGIN } from "./lib/auth.js";
 import { STORIES } from "./lib/stories.js";
-import { normalizePhoto, makeThumb, MOCK } from "./lib/images.js";
+import { normalizePhoto, makeThumb, MOCK, BOOK_MODEL } from "./lib/images.js";
+import { CHECK_MODEL, PASS_SCORE } from "./lib/vision.js";
+import { PRICES_CHECKED } from "./lib/cost.js";
 import { ensureArt, status as artStatus, storyReady, artOverview, sceneFor } from "./lib/pregen.js";
 import { startBook, jobFor } from "./lib/pipeline.js";
 import { buildBookPdf } from "./lib/pdf.js";
@@ -143,13 +145,18 @@ function cleanChild(raw = {}, story) {
   return child;
 }
 
+// Books made before "kept" was stored: the kept try is the best-scored one.
+const keptOf = (p) => (p.attempts || []).filter((a) => a.score != null).sort((a, b) => b.score - a.score)[0]?.attempt ?? null;
 const bookOut = (b) => ({
   id: b.id, story: b.story, title: STORIES[b.story]?.title, status: b.status, child: b.child, error: b.error, timing: b.timing,
   createdAt: b.created_at, finishedAt: b.finished_at, portrait: b.portrait_id ? Number(b.portrait_id) : null, photo: b.photo_id ? Number(b.photo_id) : null,
-  pages: (b.pages || []).map((p) => ({ n: p.n, url: `${p.shared ? "/art" : "/img"}/${p.image}`, text: p.text, place: p.place, score: p.score, attempts: p.attempts, standIn: p.standIn })),
+  pages: (b.pages || []).map((p) => ({ n: p.n, url: `${p.shared ? "/art" : "/img"}/${p.image}`, text: p.text, place: p.place, score: p.score, attempts: p.attempts, kept: p.kept ?? keptOf(p), passed: p.score != null && p.score >= PASS_SCORE, ahead: !!p.ahead || !!p.shared, standIn: p.standIn })),
 });
 
 app.get("/api/books", route(async (req) => ({ books: (await db.listBooks(req.user.id)).map(bookOut) })));
+
+// What a book costs to make, next to what we charge for it.
+app.get("/api/costs", route(async (req) => ({ price: wallet.BOOK_CENTS / 100, pricesChecked: PRICES_CHECKED, models: { pages: BOOK_MODEL, checks: CHECK_MODEL }, ...(await db.costSummary(req.user.id)) })));
 
 app.post("/api/books", upload.single("photo"), route(async (req) => {
   const story = STORIES[req.body.story];

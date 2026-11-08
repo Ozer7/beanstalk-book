@@ -158,6 +158,23 @@ details{margin-top:16px}summary{cursor:pointer;font-weight:700}
 .back{position:absolute;inset:0;background:var(--story);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqw;text-align:center;padding:8cqw}
 .back h3{font-size:11cqw}
 .nav{display:flex;justify-content:center;align-items:center;gap:14px;margin:16px auto 0}
+.tries{position:absolute;right:3px;bottom:3px;z-index:2;background:rgba(14,19,44,.88);color:#fff;font:700 11px/1 Andika,sans-serif;padding:3px 5px;border-radius:9px;letter-spacing:.02em;pointer-events:none}
+.tries.best{background:#a4560f}
+.tries.live{left:3px;right:3px;text-align:center;background:var(--gold);color:var(--ink);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.6}}
+.strip button{position:relative}
+.strip .tries{font-size:9px;padding:2px 3px;right:1px;bottom:1px}
+.readbar .tryline{grid-column:1/-1;text-align:center}
+.tryline{min-height:1.5em;margin-top:8px;color:var(--mist)}
+.tryline b{color:var(--paper)}
+.legend{margin-top:10px;color:var(--mist);font-size:14px}
+.cost{margin-top:22px}
+.cost .vs{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.cost .vs b{font:700 40px/1 Fraunces,Georgia,serif}
+.cost .bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--edge);margin:12px 0 6px}
+.cost .bar i{display:block;height:100%}
+.cost .key{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;color:var(--soft)}
+.cost .key span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;background:var(--c)}
 .strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:16px}
 .strip button{padding:0;border:0;background:none;cursor:pointer;border-radius:2px;overflow:hidden;aspect-ratio:2/3;opacity:.7;color:var(--mist)}
 .strip button[aria-current=true],.strip button:hover{opacity:1;outline:2px solid var(--gold)}
@@ -225,6 +242,27 @@ details{margin-top:16px}summary{cursor:pointer;font-weight:700}
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const money = (c) => `$${(Math.abs(c) / 100).toFixed(2)}`;
+const usd = (d, places = 2) => `$${Number(d || 0).toFixed(places)}`;
+
+// The quality loop, page by page: how many tries a picture took (up to 3), and
+// which one was kept. Shown on every thumbnail and under the page being read.
+const MAX_TRIES = 3;
+const triesOf = (p) => (p.attempts || []).filter((a) => !a.skipped && !a.error).length || (p.attempts || []).filter((a) => !a.skipped).length;
+function triesBadge(p) {
+  const n = p.tries ?? triesOf(p);
+  if (!n) return "";
+  const best = p.passed === false;
+  return `<span class="tries ${best ? "best" : ""}" title="${esc(tryText(p))}">${n}/${MAX_TRIES}${best ? " ★" : ""}</span>`;
+}
+function tryText(p) {
+  const n = p.tries ?? triesOf(p);
+  const pre = p.ahead ? "Painted ahead of time (you aren't on this page). " : "";
+  if (!n) return p.ahead ? "Painted ahead of time." : "";
+  const kept = p.kept ?? n, sc = p.score != null ? `, check score ${p.score}` : "";
+  if (p.passed !== false) return n === 1 ? `${pre}Passed the check on try 1 of ${MAX_TRIES}${sc}.` : `${pre}Try ${kept} of ${MAX_TRIES} passed the check${sc}.`;
+  const why = n < MAX_TRIES ? `${n} of ${MAX_TRIES} tries before time ran out` : `All ${MAX_TRIES} tries had problems`;
+  return `${pre}${why}: kept the best, try ${kept}${sc}.`;
+}
 const when = (d) => new Date(d).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 // In a narrow table: the day on one line, the time under it.
 const whenLines = (d) => { const t = new Date(d); return `<span class="day">${t.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span><br><span class="note time">${t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span>`; };
@@ -483,6 +521,7 @@ function viewMaking(book) {
       <div class="easel">
         <div class="fresh" id="fresh">The first page is on the easel.</div>
         <div class="slots">${Array.from({ length: 20 }, (_, i) => `<div class="slot" id="s${i + 1}">${i + 1}</div>`).join("")}</div>
+        <p class="legend">Every picture is checked as it's painted. The number on each page is the try that's on it, out of ${MAX_TRIES}. A page that fails the check is painted again; if all ${MAX_TRIES} tries have problems, the best one is kept and marked ★.</p>
       </div>
     </div>
   </div>`;
@@ -513,9 +552,14 @@ function viewMaking(book) {
     if (s.label) stage.textContent = s.label;
     $("#bar").style.width = `${s.percent}%`; $("#barw").setAttribute("aria-valuenow", Math.round(s.percent));
     climbTo(s.percent);
+    for (const [n, a] of Object.entries(s.tries || {})) {
+      if (seen.has(+n)) continue;
+      const slot = $(`#s${n}`); if (!slot) continue;
+      slot.innerHTML = `${n}<span class="tries live">try ${a}/${MAX_TRIES}</span>`;
+    }
     for (const t of s.thumbs || []) {
       if (seen.has(t.n)) continue; seen.add(t.n);
-      $(`#s${t.n}`).innerHTML = `<img src="${t.url}" alt="Page ${t.n}">`;
+      $(`#s${t.n}`).innerHTML = `<img src="${t.url}" alt="Page ${t.n}">${triesBadge(t)}`;
       easel.push(t);
     }
     if (s.stage === "done" || s.stage === "failed" || s.stage === "lost") { stream.close(); clearInterval(tick); setTimeout(() => viewBook(book.id), s.stage === "done" ? 900 : 0); }
@@ -550,9 +594,9 @@ function viewSpread(book) {
   const retried = book.pages.filter((p) => (p.attempts || []).filter((x) => !x.skipped).length > 1);
   app.innerHTML = `<div class="row" style="justify-content:space-between"><h2>${esc(book.title)}, starring ${esc(book.child.name)}</h2><a class="btn" href="/api/books/${book.id}/pdf">Download PDF</a></div>
     <div class="spread" id="book" tabindex="0" aria-label="The book. Use the arrow keys to turn pages."></div>
-    <div class="readbar"><p class="note">Drag a page, or use the arrow keys.</p><div class="nav"><button class="btn ghost small" id="prev">Back</button><span id="pos" class="note" style="min-width:110px;text-align:center"></span><button class="btn ghost small" id="next">Next</button></div>
-      <details style="justify-self:end"><summary>How this book was checked</summary><p class="scores">Made in ${t.totalMs ? (t.totalMs / 1000).toFixed(0) : "?"} seconds. Every picture was analysed. ${retried.length ? `${retried.length} ${retried.length === 1 ? "page was" : "pages were"} repainted: ${retried.map((p) => `page ${p.n}`).join(", ")}.` : "Every page passed the first time."}${t.outOfTime ? ` ${t.outOfTime} kept the best try when time ran out.` : ""}</p></details></div>
-    <div class="strip wide">${book.pages.map((p, n) => `<button data-i="${n}" aria-label="Page ${p.n}"><img src="${p.url}?thumb=1" alt="" loading="lazy"></button>`).join("")}<button data-i="${book.pages.length}" aria-label="About Me" style="background:var(--paper);color:var(--ink);font-size:10px;line-height:1.1">About Me</button></div>`;
+    <div class="readbar"><p class="note">Drag a page, or use the arrow keys.</p><div class="nav"><button class="btn ghost small" id="prev">Back</button><span id="pos" class="note" style="min-width:110px;text-align:center"></span><button class="btn ghost small" id="next">Next</button></div><p class="tryline note" id="tryline" aria-live="polite"></p>
+      <details style="justify-self:end"><summary>How this book was checked</summary><p class="scores">Made in ${t.totalMs ? (t.totalMs / 1000).toFixed(0) : "?"} seconds. Every picture was analysed. ${retried.length ? `${retried.length} ${retried.length === 1 ? "page was" : "pages were"} repainted: ${retried.map((p) => `page ${p.n}`).join(", ")}.` : "Every page passed the first time."}${t.outOfTime ? ` ${t.outOfTime} kept the best try when time ran out.` : ""}${t.costUsd != null ? ` Its API calls (${t.apiCalls?.images ?? "?"} image calls, retries included, and ${t.apiCalls?.checks ?? "?"} checks) cost ${usd(t.costUsd, 3)}; the book costs you $0.99.` : ""}</p></details></div>
+    <div class="strip wide">${book.pages.map((p, n) => `<button data-i="${n}" aria-label="Page ${p.n}. ${esc(tryText(p))}"><img src="${p.url}?thumb=1" alt="" loading="lazy">${triesBadge(p)}</button>`).join("")}<button data-i="${book.pages.length}" aria-label="About Me" style="background:var(--paper);color:var(--ink);font-size:10px;line-height:1.1">About Me</button></div>`;
   const el = $("#book");
   const face = (n, side) => (n >= 0 && n <= last ? `<div class="side ${side}">${pageHtml(book, n)}</div>` : "");
   const state = (a) => (a === 0 ? "start" : a === maxAt ? "end" : "");
@@ -562,6 +606,7 @@ function viewSpread(book) {
     const nums = [leftOf(at), rightOf(at)].filter((n) => n >= 0 && n <= last);
     const name = (n) => (n === book.pages.length ? "About Me" : n > book.pages.length ? "The End" : n === 0 ? "Cover" : `Page ${n + 1}`);
     $("#pos").textContent = nums.map(name).join(", ");
+    $("#tryline").innerHTML = nums.filter((n) => n < book.pages.length).map((n) => `<b>Page ${n + 1}:</b> ${esc(tryText(book.pages[n]))}`).join("<br>");
     $("#prev").disabled = at === 0; $("#next").disabled = at === maxAt;
     app.querySelectorAll(".strip button").forEach((b) => b.setAttribute("aria-current", String(nums.includes(+b.dataset.i))));
     busy = false;
@@ -638,12 +683,12 @@ function viewReader(book) {
   app.innerHTML = `<div class="row" style="justify-content:space-between"><h2>${esc(book.title)}, starring ${esc(book.child.name)}</h2><a class="btn" href="/api/books/${book.id}/pdf">Download PDF</a></div>
     <div class="reader">
       <div><div class="stack" id="stack" tabindex="0" aria-label="The book. Use the arrow keys to turn pages."></div>
-        <div class="nav"><button class="btn ghost small" id="prev">Back</button><span id="pos" class="note" style="min-width:96px;text-align:center"></span><button class="btn ghost small" id="next">Next</button></div></div>
+        <div class="nav"><button class="btn ghost small" id="prev">Back</button><span id="pos" class="note" style="min-width:96px;text-align:center"></span><button class="btn ghost small" id="next">Next</button></div><p class="tryline note" id="tryline" aria-live="polite"></p></div>
       <div>
         <p class="note">Drag a page, swipe, or use the arrow keys to turn it. This book stays on your shelf.</p>
-        <div class="strip">${book.pages.map((p, n) => `<button data-i="${n}" aria-label="Page ${p.n}"><img src="${p.url}?thumb=1" alt="" loading="lazy"></button>`).join("")}<button data-i="${book.pages.length}" aria-label="About Me" style="background:var(--paper);color:var(--ink);font-size:11px;line-height:1.1">About Me</button></div>
+        <div class="strip">${book.pages.map((p, n) => `<button data-i="${n}" aria-label="Page ${p.n}. ${esc(tryText(p))}"><img src="${p.url}?thumb=1" alt="" loading="lazy">${triesBadge(p)}</button>`).join("")}<button data-i="${book.pages.length}" aria-label="About Me" style="background:var(--paper);color:var(--ink);font-size:11px;line-height:1.1">About Me</button></div>
         <details style="margin-top:20px"><summary>How this book was checked</summary>
-          <p class="scores">Made in ${t.totalMs ? (t.totalMs / 1000).toFixed(0) : "?"} seconds. Every picture was analysed. ${retried.length ? `${retried.length} ${retried.length === 1 ? "page was" : "pages were"} repainted: ${retried.map((p) => `page ${p.n}`).join(", ")}.` : "Every page passed the first time."}${t.outOfTime ? ` ${t.outOfTime} kept the best try when time ran out.` : ""}</p>
+          <p class="scores">Made in ${t.totalMs ? (t.totalMs / 1000).toFixed(0) : "?"} seconds. Every picture was analysed. ${retried.length ? `${retried.length} ${retried.length === 1 ? "page was" : "pages were"} repainted: ${retried.map((p) => `page ${p.n}`).join(", ")}.` : "Every page passed the first time."}${t.outOfTime ? ` ${t.outOfTime} kept the best try when time ran out.` : ""}${t.costUsd != null ? ` Its API calls (${t.apiCalls?.images ?? "?"} image calls, retries included, and ${t.apiCalls?.checks ?? "?"} checks) cost ${usd(t.costUsd, 3)}; the book costs you $0.99.` : ""}</p>
         </details>
       </div>
     </div>`;
@@ -653,6 +698,7 @@ function viewReader(book) {
   const settle = () => {
     stack.innerHTML = leaf(i);
     $("#pos").textContent = label(i);
+    $("#tryline").innerHTML = i < book.pages.length ? `<b>Page ${i + 1}:</b> ${esc(tryText(book.pages[i]))}` : "";
     $("#prev").disabled = i === 0; $("#next").disabled = i === count - 1;
     app.querySelectorAll(".strip button").forEach((b) => b.setAttribute("aria-current", String(+b.dataset.i === i)));
     busy = false;
@@ -720,12 +766,28 @@ function viewReader(book) {
   book.pages.forEach((p) => { new Image().src = p.url; });
 }
 
+// What a book costs us to make, against the $0.99 it costs you. Every OpenAI call
+// is logged with its tokens and priced (see lib/cost.js).
+function costCard(c) {
+  if (!c) return "";
+  if (!c.books) return `<div class="paper onpaper cost" style="grid-column:1/-1"><h3>What a book costs to make</h3><p class="note">Every API call is logged and priced. The average appears here after the first book.</p></div>`;
+  const p = c.parts, tot = p.firstTries + p.retries + p.checks || 1, margin = c.price - c.avg;
+  const seg = (v, col) => `<i style="width:${(v / tot) * 100}%;background:${col}"></i>`;
+  return `<div class="paper onpaper cost" style="grid-column:1/-1">
+    <h3>What a book costs to make</h3>
+    <div class="vs"><b>${usd(c.avg, 3)}</b><span>average API cost per book, over ${c.books} ${c.books === 1 ? "book" : "books"}</span><span class="note">You pay <b style="font:inherit;color:var(--ink)">${usd(c.price)}</b>: ${margin >= 0 ? `${usd(margin, 3)} left over per book` : `${usd(-margin, 3)} short per book`}.</span></div>
+    <div class="bar" role="img" aria-label="Average cost split: first tries ${usd(p.firstTries, 3)}, retries ${usd(p.retries, 3)}, checks ${usd(p.checks, 3)}">${seg(p.firstTries, "#2f8a57")}${seg(p.retries, "#e8b23a")}${seg(p.checks, "#5b6fb5")}</div>
+    <div class="key"><span style="--c:#2f8a57">Painting you in, first tries: ${usd(p.firstTries, 3)}</span><span style="--c:#e8b23a">Retries: ${usd(p.retries, 3)} (${c.calls.retries.toFixed(1)} a book)</span><span style="--c:#5b6fb5">Analysis checks: ${usd(p.checks, 3)} (${c.calls.checks.toFixed(0)} a book)</span></div>
+    <p class="note" style="margin-top:10px">Cheapest book ${usd(c.min, 3)}, dearest ${usd(c.max, 3)}. ${c.art.calls ? `Painting both stories' scenes and characters ahead of time cost ${usd(c.art.usd)} once, shared by every book. ` : ""}Priced from token counts at OpenAI's published rates (${esc(c.models.pages)} for pictures, ${esc(c.models.checks)} for checks), checked ${esc(c.pricesChecked)}.</p>
+  </div>`;
+}
+
 async function viewMoney(flash) {
   if (!me?.user) return viewHome();
   setSky(catalog?.stories[0]?.world, true);
   app.innerHTML = `<p class="note">Opening your account</p>`;
   try {
-    const w = await api("/api/wallet");
+    const [w, cost] = await Promise.all([api("/api/wallet"), api("/api/costs").catch(() => null)]);
     me.balance = w.balance; drawTop();
     const kindLabel = { deposit: "Added", book: "Book", book_refund: "Book not charged", refund: "Refund", refund_reversed: "Refund reversed" };
     app.innerHTML = `<h2>Your purse</h2>${flash || ""}
@@ -759,6 +821,7 @@ async function viewMoney(flash) {
             ${w.ledger.map((l) => `<tr><td>${whenLines(l.at)}</td><td><b>${kindLabel[l.kind] || esc(l.kind)}</b><br><span class="note">${l.bookId ? `<a href="#/book/${l.bookId}">${esc(l.cause)}</a>` : esc(l.cause)}</span></td><td class="num ${l.cents > 0 ? "plus" : ""}">${l.cents > 0 ? "+" : "-"}${money(l.cents)}</td><td class="num">${money(l.balanceAfter)}</td></tr>`).join("")}
           </tbody></table></div>` : `<p class="note" style="margin-top:8px">Every credit and debit appears here, with what caused it. Add money to start.</p>`}
         </div>
+        ${costCard(cost)}
       </div>`;
     const fund = async (cents) => {
       try { const { url } = await post("/api/wallet/fund", { cents }); location.href = url; }
