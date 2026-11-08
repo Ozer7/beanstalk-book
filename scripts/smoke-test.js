@@ -88,6 +88,7 @@ await new Promise((r) => setTimeout(r, 300)); // let the last cost rows land
 const costs = (await J("/api/costs")).body;
 assert.ok(costs.books >= 2 && costs.avg > 0 && costs.price === 0.99, "average cost per book shown against $0.99");
 assert.ok(costs.parts.retries > 0, "retries costed separately");
+assert.ok(Math.abs(costs.parts.firstTries + costs.parts.retries + costs.parts.checks - costs.avg) < 0.0005, "the cost parts add up to the average");
 console.log("costs ok: average $" + costs.avg.toFixed(3), "over", costs.books, "books");
 
 // Hebrew on the cover and the About Me page, and deleting a book

@@ -36,6 +36,8 @@ header{display:flex;align-items:center;gap:16px;padding:18px 0}
 .logo{display:inline-flex;align-items:center;gap:10px;font:700 25px Fraunces,Georgia,serif;text-decoration:none;margin-right:auto;text-shadow:0 1px 10px rgba(5,8,28,.7)}
 .logo svg{width:26px;height:26px}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+/* On a phone the header stays one line: logo left, purse and Sign out right. */
+@media (max-width:480px){header{gap:10px;padding:14px 0}.logo{font-size:20px;gap:7px}.logo svg{width:22px;height:22px}#who{flex-wrap:nowrap;gap:10px}#who .purse{padding:3px 11px 3px 6px;font-size:15px}#who .linkish{font-size:15px;white-space:nowrap}}
 .linkish{background:none;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .purse{display:inline-flex;align-items:center;gap:8px;font-weight:700;text-decoration:none;background:rgba(13,18,50,.6);backdrop-filter:blur(8px);border-radius:999px;padding:4px 14px 4px 8px;white-space:nowrap;position:relative}
 .purse svg{width:24px;height:24px}
