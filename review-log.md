@@ -49,3 +49,27 @@ Fix first:
 3. The face check judged the wrong face: on Red p19 the hero is cheek to cheek with Grandmother, and the check scored Grandmother (20, then 8), so a good page used up its time and shows "★" (lib/pipeline.js analyse; 0 points, but a misleading attempt count and a slower book).
 4. Two books back to back hit OpenAI's image limit (20 input images a minute): Red p3 lost two attempts to 429s and the book took 53.3 s, 7 s from the limit (lib/images.js; Engineering at risk).
 5. Retries push cost up: 11 retries across the two books made them $0.74 and $0.60, against $0.54 in run 1 (no points).
+
+## Run 3 — 2026-11-08 — reviewer: self — browser: Claude's built-in browser
+Total 99 (was 94)
+PDF 39/40 · UI 20/20 · Money 20/20 · Engineering 20/20
+Upload 19:17:29 → PDF 19:18:14 (45.0 s), Jack and the Beanstalk, book #19 (portrait ready at 13.5 s; pp. 1, 7, 10, 13 passed on try 2)
+Upload 19:18:38 → PDF 19:19:12 (33.9 s), Little Red Riding Hood, book #20, started straight after (every page passed on try 1; no rate-limit errors)
+Balance: 15.68 → generate 14.69 → generate 13.70 → refund 1.00 → 12.70
+Avg cost per book: $0.601 over 7 books (price $0.99): first tries $0.486, retries $0.076, checks $0.040
+Photo: a third AI-generated face from thispersondoesnotexist.com (a man of about 35 with dark hair and glasses), not used in development. Name "Sam", boy, About Me: 35, chess, sushi, a teacher.
+Not measured: none. Deviations as in run 1 (no private window in the built-in browser; the builder entered the test card, for the $20.00 funding before run 2).
+Changed since run 2: pages copy the face from the book's painted portrait instead of the photo; the portrait is painted with the story's hero from the character bible as the style example; the face check sees other characters' faces and hair greyed out; OpenAI 429s are waited out and resent instead of failing an attempt.
+
+Evidence:
+- PDF. 21 pages each. Same template and text zones; no text over a face on any page. Sam is the same person, glasses included, on every page of both books (pp. 1, 10, 20 side by side), and in Jack the head is painted to match the child-sized bodies. Red p19, which scored 20 and 8 in run 2, passed on try 1. Remaining: in Red the largest heads (pp. 8, 14) still read a little more realistic than the paint around them (style −1).
+- UI. The progress bar shows "Painting your portrait first" for the first 13 s, then "Painting you into the pages: n of 20 done". Attempt counts on every picture.
+- Money. Each book −$0.99 exactly; refund $1.00 (re_3UZfwyD77uFrOgI506wmjDSO) processed at once; 29 history rows sum to $12.70, and every running balance checks. Cost card parts add up to the average.
+- Engineering. 45.0 s and 33.9 s, made back to back. Signed out: PDF 401; signed in: book #16 downloads (6.8 MB, 1.4 s).
+
+Fix first:
+1. Big heads in Red still look a little more realistic than the paint (pp. 8, 14) (PDF style, −1). Next: paint the portrait at medium quality (one image, a few seconds), or soften the blended head to the page's texture.
+2. The portrait is painted before any page starts, so a book with retries runs 45–53 s (book #18 between runs: 52.8 s): under 60, with less margin than before (Engineering at risk).
+3. Cost is $0.60 a book, 61% of the $0.99 price; retries add about $0.08 a book (no points).
+4. An adult's head on the story's child-sized body reads oddly at close range; the template's heroes are children (no points; a product decision).
+5. Red p2's words are set small because its clear band is short (carried over from run 1; no points).
