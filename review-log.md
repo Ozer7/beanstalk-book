@@ -25,3 +25,27 @@ Fix first:
 3. At 400 px the header breaks into three lines: the balance pill floats above the logo and "Sign out" sits on its own line (public/index.html header; UI, 0 but looks unfinished)
 4. Red p2 words are set smaller than the other pages (the top band is short), and the About Me labels are about 7 pt: legible, but the smallest type in the book (lib/layout.js, lib/pdf.js; PDF, 0)
 5. Cost is 55% of the price ($0.54 of $0.99), and every retry eats into it; worth knowing before pricing changes (no points)
+
+## Run 2 — 2026-11-08 — reviewer: self — browser: Claude's built-in browser
+Total 94 (was 98)
+PDF 34/40 · UI 20/20 · Money 20/20 · Engineering 20/20
+Upload 19:00:42 → PDF 19:01:24 (42.6 s), Jack and the Beanstalk, book #16 (6 pages repainted, all passed on try 2)
+Upload 19:01:53 → PDF 19:02:46 (53.3 s), Little Red Riding Hood, book #17 (p3 lost tries 1 and 2 to OpenAI 429s, passed on try 3; p19 scored 20 and 8, ran out of time, kept try 1)
+Balance: 0.65 → fund 20.00 → 20.65 → generate 19.66 → generate 18.67 → refund 2.00 → 16.67
+Avg cost per book: $0.616 over 4 books (price $0.99); book #16 $0.743, book #17 $0.601
+Photo: a new AI-generated face from thispersondoesnotexist.com (a man of about 40 with stubble), never used before. Name "Daniel", boy, About Me: 40, fixing old bikes, lasagna, a pilot.
+Not measured: none. Deviations as in run 1 (no private window in the built-in browser; the builder entered the test card).
+Changed since run 1: the cost card's parts now add up to the average; the face check marks down age drift; the phone header is one line at 400 px; About Me labels 12 pt and details 14 pt.
+
+Evidence:
+- PDF. 21 pages each (20 + About Me). Same template and text zones as run 1; no text over a face on any page. About Me shows "Daniel", "starring as Jack/Little Red" and all four details. But the faces look pasted on: Daniel's head is close to a photograph on Red pp. 8, 10, 14 and Jack p16, much more detailed than the painted bodies and the other characters (style −2). And likeness drifts: in Jack he is plainly Daniel on pp. 4, 8, 14, 16 but a generic young boy on pp. 3, 6, 11, 13 (−4).
+- UI. Progress names each stage, including "Repainting 3 pages that didn't pass the check" with "try 2/3" on slots 2, 8 and 14. Thumbnails one by one. Balance always in the top bar. The header is one line at 400 px.
+- Money. +$20.00 from the builder's payment. Each book −$0.99 exactly. Refund $2.00 (re_3UZfwyD77uFrOgI50aBDVJih) processed at once. 25 history rows sum to $16.67, and every running balance checks. Purse: "$0.616 average API cost per book, over 4 books. You pay $0.99: $0.374 left over per book", with first tries, retries and checks adding up to the average.
+- Engineering. Both under 60 s (42.6 s, 53.3 s). Signed out: PDF 401; signed in: book #14 downloads (7.6 MB, 2.0 s). Attempt counts shown on every picture.
+
+Fix first:
+1. Faces look pasted in: the page edit copies the face from the photo, so it comes out photographic (Red pp. 8, 10, 14; Jack p16) (PDF style, −2). Fix: copy the face from the book's own painted portrait, which passes its own likeness check against the photo, and keep checking every page against the photo.
+2. Likeness drifts between pages: Daniel becomes a generic boy on Jack pp. 3, 6, 11, 13 (PDF likeness, −4). Same fix: every page copies one painted face.
+3. The face check judged the wrong face: on Red p19 the hero is cheek to cheek with Grandmother, and the check scored Grandmother (20, then 8), so a good page used up its time and shows "★" (lib/pipeline.js analyse; 0 points, but a misleading attempt count and a slower book).
+4. Two books back to back hit OpenAI's image limit (20 input images a minute): Red p3 lost two attempts to 429s and the book took 53.3 s, 7 s from the limit (lib/images.js; Engineering at risk).
+5. Retries push cost up: 11 retries across the two books made them $0.74 and $0.60, against $0.54 in run 1 (no points).
